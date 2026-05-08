@@ -2,7 +2,7 @@ import http from "http";
 import fs from "fs";
 import path from "path";
 
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
 const PUBLIC_DIR = path.join(process.cwd(), "public");
 
 const MIME_TYPES: Record<string, string> = {
