@@ -1,2 +1,0 @@
-# Splme
-Oyun
