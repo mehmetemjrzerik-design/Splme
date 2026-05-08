@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Sploop.io Clone</title>
+    <meta name="theme-color" content="#f3c843">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="apple-touch-icon" href="/apple-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/icon-light-32x32.png">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -13,144 +20,272 @@
         }
         #gameCanvas { display: block; width: 100%; height: 100%; }
 
-        /* ==================== GIRIS MENUSU ==================== */
+        :root {
+            --menu-bg: #4f6731;
+            --menu-grid: rgba(0, 0, 0, 0.14);
+            --panel-bg: rgba(15, 18, 14, 0.62);
+            --panel-border: rgba(0, 0, 0, 0.55);
+            --panel-shadow: rgba(0, 0, 0, 0.35);
+            --text: rgba(255, 255, 255, 0.92);
+            --muted: rgba(255, 255, 255, 0.7);
+            --accent: #f3c843;
+            --accent-2: #e07a3c;
+            --tab-bg: rgba(0, 0, 0, 0.45);
+            --tab-border: rgba(255, 255, 255, 0.12);
+        }
+
+        body, html { background: var(--menu-bg); }
+
         #main-menu {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, #4a7a38 0%, #3a5a28 50%, #2a4a18 100%);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            position: absolute;
+            inset: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 18px 16px 24px;
             z-index: 1000;
         }
-        #menu-bg-pattern {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: 
-                radial-gradient(circle at 20% 30%, rgba(255,255,255,0.05) 0%, transparent 25%),
-                radial-gradient(circle at 80% 70%, rgba(255,255,255,0.05) 0%, transparent 25%),
-                radial-gradient(circle at 50% 50%, rgba(0,0,0,0.1) 0%, transparent 50%);
+        #main-menu::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                repeating-linear-gradient(0deg, var(--menu-grid) 0 1px, transparent 1px 64px),
+                repeating-linear-gradient(90deg, var(--menu-grid) 0 1px, transparent 1px 64px),
+                radial-gradient(circle at 20% 25%, rgba(255, 255, 255, 0.06), transparent 55%),
+                radial-gradient(circle at 85% 70%, rgba(0, 0, 0, 0.22), transparent 60%);
             pointer-events: none;
+            z-index: 0;
+        }
+
+        #menu-shell {
+            width: min(1100px, calc(100vw - 32px));
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-top: clamp(8px, 2.5vh, 18px);
+            position: relative;
+            z-index: 1;
+        }
+
+        #menu-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            flex-wrap: wrap;
         }
 
         #game-logo {
             font-family: 'Fredoka One', cursive;
-            font-size: clamp(48px, 12vw, 80px);
+            font-size: clamp(34px, 6vw, 56px);
             color: #fff;
-            text-shadow: 
-                0 4px 0 #2a5a18,
-                0 8px 0 #1a4a08,
-                0 12px 20px rgba(0,0,0,0.4);
-            margin-bottom: 10px;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
+            line-height: 1;
+            text-shadow:
+                0 3px 0 rgba(0, 0, 0, 0.55),
+                0 10px 18px rgba(0, 0, 0, 0.35);
+            margin: 0;
+            user-select: none;
         }
-        #game-logo span { color: #f8d850; }
+        #game-logo span { color: var(--accent); }
+
+        #menu-nav {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .menu-tab {
+            appearance: none;
+            border: 2px solid var(--tab-border);
+            background: var(--tab-bg);
+            color: var(--text);
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 800;
+            font-size: 14px;
+            cursor: pointer;
+            letter-spacing: 0.3px;
+            box-shadow: 0 10px 22px rgba(0, 0, 0, 0.25);
+            transition: transform 0.08s ease, background 0.12s ease, border-color 0.12s ease;
+            text-transform: uppercase;
+        }
+        .menu-tab:hover {
+            transform: translateY(-1px);
+            border-color: rgba(255, 255, 255, 0.22);
+        }
+        .menu-tab:active { transform: translateY(1px); }
+        .menu-tab.active {
+            background: rgba(243, 200, 67, 0.95);
+            color: rgba(20, 20, 20, 0.95);
+            border-color: rgba(0, 0, 0, 0.15);
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+        }
+
+        #menu-content {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 14px;
+            align-items: start;
+        }
+
+        .menu-panel {
+            background: var(--panel-bg);
+            border: 3px solid var(--panel-border);
+            border-radius: 18px;
+            padding: 16px;
+            box-shadow: 0 18px 42px var(--panel-shadow);
+            backdrop-filter: blur(10px);
+        }
+
+        .menu-view { display: none; }
+        .menu-view.active { display: block; }
+        .menu-side { display: none; }
+        .menu-side.active { display: block; }
+
+        #menu-side-panel { padding: 16px; }
 
         #menu-subtitle {
-            color: rgba(255,255,255,0.7);
-            font-size: 16px;
-            margin-bottom: 30px;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            text-align: center;
+            margin: 2px 0 10px;
         }
 
-        /* Isim Girisi */
-        #name-input-container {
-            background: rgba(0,0,0,0.3);
-            border-radius: 12px;
-            padding: 8px;
-            margin-bottom: 20px;
+        #name-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
         }
+
         #player-name-input {
-            width: 280px;
-            padding: 15px 20px;
-            font-size: 18px;
+            flex: 1;
+            min-width: 200px;
+            padding: 14px 14px;
+            font-size: 16px;
             font-family: 'Nunito', sans-serif;
-            font-weight: 700;
-            border: none;
-            border-radius: 8px;
-            background: rgba(255,255,255,0.95);
-            color: #333;
-            text-align: center;
+            font-weight: 800;
+            border: 2px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.94);
+            color: #222;
             outline: none;
         }
-        #player-name-input::placeholder { color: #999; }
+        #player-name-input::placeholder { color: rgba(0, 0, 0, 0.45); }
 
-        /* Play Butonu */
+        #region-select {
+            width: 170px;
+            padding: 14px 12px;
+            font-size: 14px;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 900;
+            border: 2px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.45);
+            color: var(--text);
+            outline: none;
+            cursor: pointer;
+        }
+
         #play-btn {
-            width: 280px;
-            padding: 18px 40px;
-            font-size: 24px;
+            width: 100%;
+            padding: 16px 18px;
+            font-size: 28px;
             font-family: 'Fredoka One', cursive;
             font-weight: 400;
-            color: #fff;
-            background: linear-gradient(180deg, #e85a5a 0%, #c94040 100%);
+            color: #1b1304;
+            background: linear-gradient(180deg, #f3c843 0%, #e0a72a 100%);
             border: none;
-            border-radius: 12px;
+            border-radius: 16px;
             cursor: pointer;
-            text-shadow: 0 2px 0 rgba(0,0,0,0.2);
-            box-shadow: 
-                0 6px 0 #a03030,
-                0 10px 20px rgba(0,0,0,0.3);
-            transition: all 0.1s;
-            margin-bottom: 20px;
+            box-shadow:
+                0 8px 0 rgba(153, 102, 10, 0.9),
+                0 18px 36px rgba(0, 0, 0, 0.35);
+            transition: transform 0.08s ease, box-shadow 0.08s ease;
         }
         #play-btn:hover { transform: translateY(-2px); }
-        #play-btn:active { 
-            transform: translateY(4px); 
-            box-shadow: 0 2px 0 #a03030, 0 4px 10px rgba(0,0,0,0.3);
+        #play-btn:active {
+            transform: translateY(4px);
+            box-shadow:
+                0 3px 0 rgba(153, 102, 10, 0.9),
+                0 10px 22px rgba(0, 0, 0, 0.35);
         }
 
-        /* Menu Butonlari */
-        #menu-buttons {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 30px;
+        #mode-row {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
         }
-        .menu-btn {
-            padding: 12px 24px;
-            font-size: 15px;
+
+        .mode-btn {
+            padding: 12px 10px;
+            border-radius: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.12);
+            background: rgba(0, 0, 0, 0.42);
+            color: var(--text);
             font-family: 'Nunito', sans-serif;
-            font-weight: 700;
-            color: #fff;
-            background: rgba(0,0,0,0.4);
-            border: 3px solid rgba(255,255,255,0.2);
-            border-radius: 10px;
+            font-weight: 900;
+            letter-spacing: 0.3px;
             cursor: pointer;
-            transition: all 0.15s;
+            transition: transform 0.08s ease, background 0.12s ease;
         }
-        .menu-btn:hover {
-            background: rgba(0,0,0,0.5);
-            border-color: rgba(255,255,255,0.4);
-            transform: scale(1.05);
+        .mode-btn:hover { transform: translateY(-1px); }
+        .mode-btn:active { transform: translateY(1px); }
+        .mode-btn.active {
+            background: rgba(224, 122, 60, 0.95);
+            border-color: rgba(0, 0, 0, 0.15);
+            color: rgba(20, 20, 20, 0.95);
         }
 
-        /* Leaderboard (Menu) */
         #menu-leaderboard {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 220px;
-            background: rgba(0,0,0,0.5);
-            border-radius: 12px;
-            padding: 15px;
-            border: 3px solid rgba(255,255,255,0.1);
+            width: 100%;
+            background: transparent;
+            border: none;
+            padding: 0;
         }
         #menu-leaderboard h3 {
-            color: #f8d850;
-            font-size: 16px;
-            text-align: center;
-            margin-bottom: 12px;
-            text-shadow: 0 2px 0 rgba(0,0,0,0.3);
+            color: var(--accent);
+            font-size: 14px;
+            text-align: left;
+            margin: 0 0 12px;
+            text-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
+            letter-spacing: 0.3px;
         }
         .lb-entry {
-            display: flex;
-            justify-content: space-between;
-            padding: 6px 8px;
-            color: #fff;
+            display: grid;
+            grid-template-columns: 28px 1fr auto;
+            gap: 10px;
+            align-items: center;
+            padding: 10px 10px;
+            color: var(--text);
             font-size: 13px;
-            border-radius: 6px;
+            border-radius: 12px;
+            background: rgba(0, 0, 0, 0.34);
+            border: 2px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 10px;
         }
-        .lb-entry:nth-child(2) { background: rgba(255,215,0,0.3); }
-        .lb-entry:nth-child(3) { background: rgba(192,192,192,0.3); }
-        .lb-entry:nth-child(4) { background: rgba(205,127,50,0.3); }
-        .lb-rank { color: #f8d850; font-weight: 800; margin-right: 8px; }
-        .lb-name { flex: 1; }
-        .lb-score { color: #8f8; font-weight: 700; }
+        .lb-entry:last-child { margin-bottom: 0; }
+        .lb-rank {
+            display: inline-flex;
+            width: 28px;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.95);
+            font-weight: 900;
+        }
+        .lb-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 800; }
+        .lb-score { color: rgba(160, 255, 170, 0.95); font-weight: 900; }
+
+        @media (max-width: 860px) {
+            #menu-header { justify-content: center; }
+            #menu-content { grid-template-columns: 1fr; }
+            #region-select { width: 100%; }
+        }
 
         /* ==================== SHOP POPUP ==================== */
         #shop-popup, #settings-popup, #changelog-popup {
@@ -169,10 +304,23 @@
             flex-direction: column;
             overflow: hidden;
         }
+        .menu-embed {
+            position: static !important;
+            top: auto !important;
+            left: auto !important;
+            transform: none !important;
+            width: 100% !important;
+            max-width: none !important;
+            max-height: none !important;
+            z-index: auto !important;
+            display: flex !important;
+        }
+        .menu-embed .popup-close { background: rgba(0,0,0,0.35); box-shadow: 0 3px 0 rgba(0,0,0,0.5); }
         .popup-header {
             background: rgba(0,0,0,0.3);
             padding: 15px 20px;
             display: flex;
+            justify-content: space-between;
             justify-content: space-between;
             align-items: center;
             border-bottom: 3px solid rgba(0,0,0,0.2);
@@ -502,132 +650,176 @@
     </style>
 </head>
 <body>
-    <!-- ==================== GIRIS MENUSU ==================== -->
     <div id="main-menu">
-        <div id="menu-bg-pattern"></div>
-        
-        <div id="menu-leaderboard">
-            <h3>LEADERBOARD</h3>
-            <div class="lb-entry"><span class="lb-rank">1.</span><span class="lb-name">ProPlayer</span><span class="lb-score">1.2M</span></div>
-            <div class="lb-entry"><span class="lb-rank">2.</span><span class="lb-name">GameMaster</span><span class="lb-score">890K</span></div>
-            <div class="lb-entry"><span class="lb-rank">3.</span><span class="lb-name">Destroyer</span><span class="lb-score">654K</span></div>
-            <div class="lb-entry"><span class="lb-rank">4.</span><span class="lb-name">Builder123</span><span class="lb-score">432K</span></div>
-            <div class="lb-entry"><span class="lb-rank">5.</span><span class="lb-name">Survivor</span><span class="lb-score">321K</span></div>
-            <div class="lb-entry"><span class="lb-rank">6.</span><span class="lb-name">Hunter</span><span class="lb-score">210K</span></div>
-            <div class="lb-entry"><span class="lb-rank">7.</span><span class="lb-name">Ninja</span><span class="lb-score">180K</span></div>
-            <div class="lb-entry"><span class="lb-rank">8.</span><span class="lb-name">Legend</span><span class="lb-score">150K</span></div>
-        </div>
-
-        <h1 id="game-logo">Sploop<span>.io</span></h1>
-        <p id="menu-subtitle">Craft, Build, Survive!</p>
-        
-        <div id="name-input-container">
-            <input type="text" id="player-name-input" placeholder="Enter your name..." maxlength="16">
-        </div>
-        
-        <button id="play-btn">PLAY</button>
-        
-        <div id="menu-buttons">
-            <button class="menu-btn" id="shop-btn">SHOP</button>
-            <button class="menu-btn" id="settings-btn">SETTINGS</button>
-            <button class="menu-btn" id="changelog-btn">CHANGELOG</button>
-        </div>
-    </div>
-
-    <!-- ==================== SHOP POPUP ==================== -->
-    <div id="shop-popup">
-        <div class="popup-header">
-            <h2>SHOP</h2>
-            <div id="shop-gold">
-                <div id="shop-gold-icon"></div>
-                <span id="shop-gold-amount">0</span>
-            </div>
-            <button class="popup-close" id="shop-close">&times;</button>
-        </div>
-        <div class="popup-content">
-            <div class="shop-tabs">
-                <button class="shop-tab active" data-tab="hats">HATS</button>
-                <button class="shop-tab" data-tab="accessories">ACCESSORIES</button>
-                <button class="shop-tab" data-tab="skins">SKINS</button>
-                <button class="shop-tab" data-tab="trails">TRAILS</button>
-            </div>
-            <div class="shop-grid" id="shop-items">
-                <!-- Items will be generated by JS -->
-            </div>
-        </div>
-    </div>
-
-    <!-- ==================== SETTINGS POPUP ==================== -->
-    <div id="settings-popup">
-        <div class="popup-header">
-            <h2>SETTINGS</h2>
-            <button class="popup-close" id="settings-close">&times;</button>
-        </div>
-        <div class="popup-content">
-            <div style="color: #fff;">
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 700;">Music Volume</label>
-                    <input type="range" min="0" max="100" value="50" style="width: 100%;">
-                </div>
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 700;">Sound Effects</label>
-                    <input type="range" min="0" max="100" value="80" style="width: 100%;">
-                </div>
-                <div style="margin-bottom: 20px;">
-                    <label style="display: flex; align-items: center; gap: 10px; font-weight: 700; cursor: pointer;">
-                        <input type="checkbox" checked style="width: 20px; height: 20px;">
-                        Show Player Names
-                    </label>
-                </div>
-                <div style="margin-bottom: 20px;">
-                    <label style="display: flex; align-items: center; gap: 10px; font-weight: 700; cursor: pointer;">
-                        <input type="checkbox" checked style="width: 20px; height: 20px;">
-                        Show Health Bars
-                    </label>
-                </div>
-                <div style="margin-bottom: 20px;">
-                    <label style="display: flex; align-items: center; gap: 10px; font-weight: 700; cursor: pointer;">
-                        <input type="checkbox" style="width: 20px; height: 20px;">
-                        Low Graphics Mode
-                    </label>
+        <div id="menu-shell">
+            <div id="menu-header">
+                <h1 id="game-logo">Sploop<span>.io</span></h1>
+                <div id="menu-nav">
+                    <button class="menu-tab" id="profile-btn" type="button">PROFİL</button>
+                    <button class="menu-tab" id="shop-btn" type="button">MAĞAZA</button>
+                    <button class="menu-tab active" id="game-btn" type="button">OYUN</button>
+                    <button class="menu-tab" id="skins-btn" type="button">DERİLER</button>
+                    <button class="menu-tab" id="changelog-btn" type="button">SIRALAMA</button>
+                    <button class="menu-tab" id="settings-btn" type="button">AYARLAR</button>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- ==================== CHANGELOG POPUP ==================== -->
-    <div id="changelog-popup">
-        <div class="popup-header">
-            <h2>CHANGELOG</h2>
-            <button class="popup-close" id="changelog-close">&times;</button>
-        </div>
-        <div class="popup-content">
-            <div style="color: #fff;">
-                <div style="margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px;">
-                    <h3 style="color: #f8d850; margin-bottom: 10px;">v1.2.0 - New Update!</h3>
-                    <ul style="margin-left: 20px; line-height: 1.8;">
-                        <li>Added new Turret building</li>
-                        <li>Added Windmill for passive wood</li>
-                        <li>New Wolf mob - aggressive!</li>
-                        <li>Improved combat system</li>
-                        <li>Bug fixes and optimizations</li>
-                    </ul>
+            <div id="menu-content">
+                <div class="menu-panel" id="menu-main-panel">
+                    <div id="menu-view-game" class="menu-view active">
+                        <div id="menu-subtitle">Craft, Build, Survive!</div>
+                        <div id="name-row">
+                            <input type="text" id="player-name-input" placeholder="Adınızı girin" maxlength="16">
+                            <select id="region-select">
+                                <option value="tr">TR#1 İstanbul</option>
+                                <option value="eu">EU#1 Frankfurt</option>
+                                <option value="us">US#1 Virginia</option>
+                            </select>
+                        </div>
+                        <button id="play-btn" type="button">OYNAMAYA BAŞLA</button>
+                        <div id="mode-row">
+                            <button class="mode-btn active" type="button">KLASİK</button>
+                            <button class="mode-btn" type="button">KUM HAVUZU</button>
+                            <button class="mode-btn" type="button">ETKİNLİK</button>
+                        </div>
+                    </div>
+
+                    <div id="menu-view-profile" class="menu-view">
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap: 12px; margin-bottom: 12px;">
+                            <div style="font-family:'Fredoka One', cursive; font-size: 22px; color: #fff;">PROFİL</div>
+                            <div style="color: rgba(255,255,255,0.7); font-weight: 800;">Misafir</div>
+                        </div>
+                        <div style="display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px;">
+                            <div style="background: rgba(0,0,0,0.32); border: 2px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 12px;">
+                                <div style="color: rgba(255,255,255,0.7); font-weight: 900; font-size: 12px;">TOPLAM PUAN</div>
+                                <div style="color: #f3c843; font-weight: 900; font-size: 20px; margin-top: 6px;">109.201</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.32); border: 2px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 12px;">
+                                <div style="color: rgba(255,255,255,0.7); font-weight: 900; font-size: 12px;">TOPLAM ÖLÜM</div>
+                                <div style="color: #fff; font-weight: 900; font-size: 20px; margin-top: 6px;">3.346</div>
+                            </div>
+                            <div style="background: rgba(0,0,0,0.32); border: 2px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 12px;">
+                                <div style="color: rgba(255,255,255,0.7); font-weight: 900; font-size: 12px;">TOPLAM ÖLDÜRME</div>
+                                <div style="color: #fff; font-weight: 900; font-size: 20px; margin-top: 6px;">13.641</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="menu-view-shop" class="menu-view">
+                        <div id="shop-popup" class="menu-embed">
+                            <div class="popup-header">
+                                <h2>MAĞAZA</h2>
+                                <div id="shop-gold">
+                                    <div id="shop-gold-icon"></div>
+                                    <span id="shop-gold-amount">0</span>
+                                </div>
+                                <button class="popup-close" id="shop-close" type="button">&times;</button>
+                            </div>
+                            <div class="popup-content">
+                                <div class="shop-tabs">
+                                    <button class="shop-tab active" data-tab="hats" type="button">HATS</button>
+                                    <button class="shop-tab" data-tab="accessories" type="button">ACCESSORIES</button>
+                                    <button class="shop-tab" data-tab="skins" type="button">SKINS</button>
+                                    <button class="shop-tab" data-tab="trails" type="button">TRAILS</button>
+                                </div>
+                                <div class="shop-grid" id="shop-items"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="menu-view-skins" class="menu-view">
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap: 12px; margin-bottom: 12px;">
+                            <div style="font-family:'Fredoka One', cursive; font-size: 22px; color: #fff;">DERİLER</div>
+                            <div style="color: rgba(255,255,255,0.7); font-weight: 800;">Yakında</div>
+                        </div>
+                        <div style="display:grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px;">
+                            <div style="height: 54px; border-radius: 14px; background: #e8d4b8; border: 3px solid rgba(0,0,0,0.35);"></div>
+                            <div style="height: 54px; border-radius: 14px; background: #4169E1; border: 3px solid rgba(0,0,0,0.35);"></div>
+                            <div style="height: 54px; border-radius: 14px; background: #DC143C; border: 3px solid rgba(0,0,0,0.35);"></div>
+                            <div style="height: 54px; border-radius: 14px; background: #228B22; border: 3px solid rgba(0,0,0,0.35);"></div>
+                            <div style="height: 54px; border-radius: 14px; background: #1a1a1a; border: 3px solid rgba(0,0,0,0.35);"></div>
+                            <div style="height: 54px; border-radius: 14px; background: #FFD700; border: 3px solid rgba(0,0,0,0.35);"></div>
+                        </div>
+                    </div>
+
+                    <div id="menu-view-leaderboard" class="menu-view">
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap: 12px; margin-bottom: 12px;">
+                            <div style="font-family:'Fredoka One', cursive; font-size: 22px; color: #fff;">SIRALAMA</div>
+                            <div style="display:flex; gap: 10px;">
+                                <button class="mode-btn active" type="button">GÜNLÜK</button>
+                                <button class="mode-btn" type="button">AY</button>
+                                <button class="mode-btn" type="button">TÜM</button>
+                            </div>
+                        </div>
+                        <div style="color: rgba(255,255,255,0.7); font-weight: 800;">Detaylar sağ panelde.</div>
+                    </div>
+
+                    <div id="menu-view-settings" class="menu-view">
+                        <div id="settings-popup" class="menu-embed">
+                            <div class="popup-header">
+                                <h2>AYARLAR</h2>
+                                <button class="popup-close" id="settings-close" type="button">&times;</button>
+                            </div>
+                            <div class="popup-content">
+                                <div style="color: #fff;">
+                                    <div style="margin-bottom: 20px;">
+                                        <label style="display: block; margin-bottom: 8px; font-weight: 700;">Music Volume</label>
+                                        <input type="range" min="0" max="100" value="50" style="width: 100%;">
+                                    </div>
+                                    <div style="margin-bottom: 20px;">
+                                        <label style="display: block; margin-bottom: 8px; font-weight: 700;">Sound Effects</label>
+                                        <input type="range" min="0" max="100" value="80" style="width: 100%;">
+                                    </div>
+                                    <div style="margin-bottom: 20px;">
+                                        <label style="display: flex; align-items: center; gap: 10px; font-weight: 700; cursor: pointer;">
+                                            <input type="checkbox" checked style="width: 20px; height: 20px;">
+                                            Show Player Names
+                                        </label>
+                                    </div>
+                                    <div style="margin-bottom: 20px;">
+                                        <label style="display: flex; align-items: center; gap: 10px; font-weight: 700; cursor: pointer;">
+                                            <input type="checkbox" checked style="width: 20px; height: 20px;">
+                                            Show Health Bars
+                                        </label>
+                                    </div>
+                                    <div style="margin-bottom: 20px;">
+                                        <label style="display: flex; align-items: center; gap: 10px; font-weight: 700; cursor: pointer;">
+                                            <input type="checkbox" style="width: 20px; height: 20px;">
+                                            Low Graphics Mode
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div style="margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px;">
-                    <h3 style="color: #aaa; margin-bottom: 10px;">v1.1.0</h3>
-                    <ul style="margin-left: 20px; line-height: 1.8;">
-                        <li>Added Shop system</li>
-                        <li>New hats and accessories</li>
-                        <li>Leaderboard improvements</li>
-                    </ul>
-                </div>
-                <div style="padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px;">
-                    <h3 style="color: #aaa; margin-bottom: 10px;">v1.0.0</h3>
-                    <ul style="margin-left: 20px; line-height: 1.8;">
-                        <li>Initial release</li>
-                        <li>Basic gameplay mechanics</li>
-                        <li>Resource gathering</li>
-                    </ul>
+
+                <div class="menu-panel" id="menu-side-panel">
+                    <div id="menu-side-mini" class="menu-side active">
+                        <div id="menu-leaderboard">
+                            <h3>SIRALAMA</h3>
+                            <div class="lb-entry"><span class="lb-rank">#1</span><span class="lb-name">ProPlayer</span><span class="lb-score">1.2M</span></div>
+                            <div class="lb-entry"><span class="lb-rank">#2</span><span class="lb-name">GameMaster</span><span class="lb-score">890K</span></div>
+                            <div class="lb-entry"><span class="lb-rank">#3</span><span class="lb-name">Destroyer</span><span class="lb-score">654K</span></div>
+                            <div class="lb-entry"><span class="lb-rank">#4</span><span class="lb-name">Builder123</span><span class="lb-score">432K</span></div>
+                            <div class="lb-entry"><span class="lb-rank">#5</span><span class="lb-name">Survivor</span><span class="lb-score">321K</span></div>
+                            <div class="lb-entry"><span class="lb-rank">#6</span><span class="lb-name">Hunter</span><span class="lb-score">210K</span></div>
+                        </div>
+                    </div>
+
+                    <div id="menu-side-leaderboard" class="menu-side">
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap: 12px; margin-bottom: 12px;">
+                            <div style="color: rgba(255,255,255,0.85); font-weight: 900;">EN İYİ PUANLAR</div>
+                            <div style="color: rgba(255,255,255,0.65); font-weight: 800;">Rütbe</div>
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap: 10px;">
+                            <div class="lb-entry"><span class="lb-rank">#1</span><span class="lb-name">#201349</span><span class="lb-score">6.406B</span></div>
+                            <div class="lb-entry"><span class="lb-rank">#2</span><span class="lb-name">Heex-02</span><span class="lb-score">3.982B</span></div>
+                            <div class="lb-entry"><span class="lb-rank">#3</span><span class="lb-name">Linhdz</span><span class="lb-score">3.580B</span></div>
+                            <div class="lb-entry"><span class="lb-rank">#4</span><span class="lb-name">Nolife</span><span class="lb-score">2.998B</span></div>
+                            <div class="lb-entry"><span class="lb-rank">#5</span><span class="lb-name">HayatYok</span><span class="lb-score">2.110B</span></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -790,14 +982,62 @@ let currentShopTab = 'hats';
 const mainMenu = document.getElementById('main-menu');
 const uiLayer = document.getElementById('ui-layer');
 const playBtn = document.getElementById('play-btn');
+const profileBtn = document.getElementById('profile-btn');
 const shopBtn = document.getElementById('shop-btn');
+const gameBtn = document.getElementById('game-btn');
+const skinsBtn = document.getElementById('skins-btn');
 const settingsBtn = document.getElementById('settings-btn');
-const changelogBtn = document.getElementById('changelog-btn');
+const leaderboardBtn = document.getElementById('changelog-btn');
 const shopPopup = document.getElementById('shop-popup');
 const settingsPopup = document.getElementById('settings-popup');
-const changelogPopup = document.getElementById('changelog-popup');
 const deathScreen = document.getElementById('death-screen');
 const respawnBtn = document.getElementById('respawn-btn');
+
+const menuViews = {
+    game: document.getElementById('menu-view-game'),
+    profile: document.getElementById('menu-view-profile'),
+    shop: document.getElementById('menu-view-shop'),
+    skins: document.getElementById('menu-view-skins'),
+    leaderboard: document.getElementById('menu-view-leaderboard'),
+    settings: document.getElementById('menu-view-settings')
+};
+
+const sideMini = document.getElementById('menu-side-mini');
+const sideLeaderboard = document.getElementById('menu-side-leaderboard');
+
+const menuTabs = [
+    { view: 'profile', el: profileBtn },
+    { view: 'shop', el: shopBtn },
+    { view: 'game', el: gameBtn },
+    { view: 'skins', el: skinsBtn },
+    { view: 'leaderboard', el: leaderboardBtn },
+    { view: 'settings', el: settingsBtn }
+];
+
+function setMenuView(view) {
+    for (const v of Object.values(menuViews)) {
+        if (!v) continue;
+        v.classList.remove('active');
+    }
+    const target = menuViews[view];
+    if (target) target.classList.add('active');
+
+    for (const t of menuTabs) t.el.classList.remove('active');
+    const tab = menuTabs.find((t) => t.view === view);
+    if (tab) tab.el.classList.add('active');
+
+    if (view === 'leaderboard') {
+        sideMini.classList.remove('active');
+        sideLeaderboard.classList.add('active');
+    } else {
+        sideLeaderboard.classList.remove('active');
+        sideMini.classList.add('active');
+    }
+
+    if (view === 'shop') renderShop();
+    if (view === 'settings' && settingsPopup) {}
+    if (view === 'shop' && shopPopup) {}
+}
 
 // Play butonu
 playBtn.addEventListener('click', startGame);
@@ -815,14 +1055,22 @@ function startGame() {
     gameLoop();
 }
 
-// Popup kontrolleri
-shopBtn.addEventListener('click', () => { shopPopup.style.display = 'flex'; renderShop(); });
-settingsBtn.addEventListener('click', () => { settingsPopup.style.display = 'flex'; });
-changelogBtn.addEventListener('click', () => { changelogPopup.style.display = 'flex'; });
+menuTabs.forEach(({ el, view }) => {
+    el.addEventListener('click', () => {
+        if (gameStarted) return;
+        setMenuView(view);
+    });
+    el.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (gameStarted) return;
+        setMenuView(view);
+    }, { passive: false });
+});
 
-document.getElementById('shop-close').addEventListener('click', () => { shopPopup.style.display = 'none'; });
-document.getElementById('settings-close').addEventListener('click', () => { settingsPopup.style.display = 'none'; });
-document.getElementById('changelog-close').addEventListener('click', () => { changelogPopup.style.display = 'none'; });
+document.getElementById('shop-close').addEventListener('click', () => { setMenuView('game'); });
+document.getElementById('settings-close').addEventListener('click', () => { setMenuView('game'); });
+
+setMenuView('game');
 
 // Shop tab degisimi
 document.querySelectorAll('.shop-tab').forEach(tab => {
@@ -2306,6 +2554,13 @@ function gameLoop() {
     update();
     draw();
     requestAnimationFrame(gameLoop);
+}
+</script>
+<script>
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/sw.js").catch(() => {});
+    });
 }
 </script>
 </body>
