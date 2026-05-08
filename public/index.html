@@ -545,6 +545,19 @@
             color: #aaa;
             font-weight: 700;
         }
+        .inv-slot.build-mode {
+            border-color: #4CAF50;
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+        }
+        .inv-slot.build-mode::after {
+            content: 'Q';
+            position: absolute;
+            bottom: 2px;
+            left: 4px;
+            font-size: 8px;
+            color: #4CAF50;
+            font-weight: 800;
+        }
 
         /* Grid selector - Bottom left */
         #grid-selector {
@@ -873,16 +886,14 @@
 
         <!-- UNIFIED INVENTORY - Sploop.io style -->
         <div id="inventory">
-            <!-- Tools -->
-            <div class="inv-slot selected" data-item="sword"><canvas id="inv-sword"></canvas><span class="inv-slot-key">1</span></div>
-            <div class="inv-slot" data-item="pickaxe"><canvas id="inv-pickaxe"></canvas><span class="inv-slot-key">2</span></div>
-            <div class="inv-slot" data-item="hammer"><canvas id="inv-hammer"></canvas><span class="inv-slot-key">3</span></div>
-            <div class="inv-slot" data-item="food"><canvas id="inv-food"></canvas><span class="inv-slot-key">4</span></div>
-            <!-- Buildings -->
-            <div class="inv-slot" data-item="spike" data-build="spike"><canvas id="inv-spike"></canvas><span class="inv-slot-key">5</span><span class="inv-slot-cost">20/5</span></div>
-            <div class="inv-slot" data-item="windmill" data-build="windmill"><canvas id="inv-windmill"></canvas><span class="inv-slot-key">6</span><span class="inv-slot-cost">50/10</span></div>
-            <div class="inv-slot" data-item="turret" data-build="turret"><canvas id="inv-turret"></canvas><span class="inv-slot-key">7</span><span class="inv-slot-cost">30/30</span></div>
-            <div class="inv-slot" data-item="wall" data-build="wall"><canvas id="inv-wall"></canvas><span class="inv-slot-key">8</span><span class="inv-slot-cost">10/5</span></div>
+            <div class="inv-slot selected" data-slot="0" data-item="sword"><span class="inv-slot-key">1</span><canvas id="inv-sword"></canvas></div>
+            <div class="inv-slot" data-slot="1" data-item="pickaxe"><span class="inv-slot-key">2</span><canvas id="inv-pickaxe"></canvas></div>
+            <div class="inv-slot" data-slot="2" data-item="hammer"><span class="inv-slot-key">3</span><canvas id="inv-hammer"></canvas></div>
+            <div class="inv-slot" data-slot="3" data-item="food"><span class="inv-slot-key">4</span><canvas id="inv-food"></canvas></div>
+            <div class="inv-slot" data-slot="4" data-item="spike" data-build="spike"><span class="inv-slot-key">5</span><canvas id="inv-spike"></canvas><span class="inv-slot-cost">20W</span></div>
+            <div class="inv-slot" data-slot="5" data-item="windmill" data-build="windmill"><span class="inv-slot-key">6</span><canvas id="inv-windmill"></canvas><span class="inv-slot-cost">50W</span></div>
+            <div class="inv-slot" data-slot="6" data-item="turret" data-build="turret"><span class="inv-slot-key">7</span><canvas id="inv-turret"></canvas><span class="inv-slot-cost">30S</span></div>
+            <div class="inv-slot" data-slot="7" data-item="wall" data-build="wall"><span class="inv-slot-key">8</span><canvas id="inv-wall"></canvas><span class="inv-slot-cost">10W</span></div>
         </div>
 
         <!-- Grid Selector -->
@@ -962,11 +973,13 @@ const player = {
     x: world.width / 2, y: world.height / 2, radius: 32,
     speed: 5, vx: 0, vy: 0, angle: 0,
     hp: 100, maxHp: 100, xp: 0, maxXp: 50, level: 1,
-    wood: 0, stone: 0, gold: 0, food: 5,
-    damage: 15, selectedItem: 'sword',
-    attackCooldown: 0, maxAttackCooldown: 20,
+    wood: 50, stone: 30, gold: 10, food: 5, // Baslangic kaynaklari
+    damage: 15, selectedSlot: 0, selectedItem: 'sword',
+    attackCooldown: 0, maxAttackCooldown: 25,
     isAttacking: false, attackAngle: 0, attackProgress: 0,
-    dashCooldown: 0, maxDashCooldown: 90
+    attackSwing: 0, // Saldiri sallanma acisi
+    dashCooldown: 0, maxDashCooldown: 90,
+    buildMode: false, buildType: null
 };
 
 const entities = [];
@@ -1245,48 +1258,78 @@ function drawGold(x, y, scale = 1) {
     ctx.restore();
 }
 
-// OYUNCU - SPLOOP.IO
+// OYUNCU - SPLOOP.IO (Guncellenmis)
 function drawPlayer(p, isBot = false) {
     ctx.save();
     ctx.translate(p.x, p.y);
     ctx.rotate(p.angle);
     
-    // Sol el - KARE
+    // Secili silahi belirle
+    const weapon = isBot ? 'sword' : player.selectedItem;
+    const isTool = ['sword', 'pickaxe', 'hammer'].includes(weapon);
+    
+    // Saldiri animasyonu
+    let weaponRotation = 0;
+    if (p.isAttacking && isTool) {
+        // Daha iyi sallanma animasyonu
+        const progress = p.attackProgress;
+        weaponRotation = Math.sin(progress * Math.PI * 1.5) * 1.8;
+    }
+    
+    // Sol el - KARE (govdenin arkasinda)
     ctx.save();
-    ctx.translate(-p.radius * 0.7, -p.radius * 0.4);
+    ctx.translate(-p.radius * 0.65, -p.radius * 0.35);
     ctx.fillStyle = '#1a1a1a';
     ctx.strokeStyle = '#0a0a0a';
     ctx.lineWidth = 3;
-    ctx.fillRect(-9, -9, 18, 18);
-    ctx.strokeRect(-9, -9, 18, 18);
+    ctx.beginPath();
+    ctx.roundRect(-8, -8, 16, 16, 3);
+    ctx.fill();
+    ctx.stroke();
     ctx.restore();
     
-    // Silah
+    // Silah ve sag el grubu
     ctx.save();
-    let weaponRotation = 0;
-    if (p.isAttacking) {
-        weaponRotation = Math.sin(p.attackProgress * Math.PI) * 1.5;
-    }
     ctx.rotate(weaponRotation);
     
     // Sag el
     ctx.save();
-    ctx.translate(p.radius * 0.7, p.radius * 0.4);
+    ctx.translate(p.radius * 0.65, p.radius * 0.35);
     ctx.fillStyle = '#1a1a1a';
     ctx.strokeStyle = '#0a0a0a';
     ctx.lineWidth = 3;
-    ctx.fillRect(-9, -9, 18, 18);
-    ctx.strokeRect(-9, -9, 18, 18);
+    ctx.beginPath();
+    ctx.roundRect(-8, -8, 16, 16, 3);
+    ctx.fill();
+    ctx.stroke();
     ctx.restore();
     
-    // Kilic
-    drawSword(p.radius + 15, 0);
+    // Silah ciz
+    if (isTool) {
+        if (weapon === 'sword') {
+            drawSword(p.radius + 12, 0);
+        } else if (weapon === 'pickaxe') {
+            drawPickaxe(p.radius + 12, 0);
+        } else if (weapon === 'hammer') {
+            drawHammer(p.radius + 12, 0);
+        }
+    }
     ctx.restore();
     
     // Govde
     const bodyColor = isBot ? '#e85a5a' : '#e8d4b8';
     const bodyStroke = isBot ? '#c04040' : '#c4b090';
     drawOutlinedCircle(0, 0, p.radius, bodyColor, bodyStroke, 7);
+    
+    // Yuz detaylari (opsiyonel - sploop tarzinda basit)
+    if (!isBot) {
+        // Gozler
+        ctx.fillStyle = '#333';
+        ctx.beginPath();
+        ctx.arc(p.radius * 0.25, -p.radius * 0.15, 4, 0, Math.PI * 2);
+        ctx.arc(p.radius * 0.25, p.radius * 0.15, 4, 0, Math.PI * 2);
+        ctx.fill();
+    }
     
     ctx.restore();
     
@@ -1311,41 +1354,118 @@ function drawSword(x, y) {
     ctx.save();
     ctx.translate(x, y);
     
+    // Sap
     ctx.fillStyle = '#8B5A2B';
     ctx.strokeStyle = '#5D3A1A';
     ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.roundRect(-18, -7, 22, 14, 3);
+    ctx.roundRect(-18, -6, 20, 12, 3);
     ctx.fill();
     ctx.stroke();
     
+    // Koruyucu
     ctx.fillStyle = '#DAA520';
     ctx.strokeStyle = '#B8860B';
     ctx.beginPath();
-    ctx.roundRect(2, -12, 10, 24, 3);
+    ctx.roundRect(0, -10, 8, 20, 2);
     ctx.fill();
     ctx.stroke();
     
+    // Bicak
     ctx.beginPath();
-    ctx.moveTo(10, -6);
-    ctx.lineTo(55, -4);
-    ctx.lineTo(65, 0);
-    ctx.lineTo(55, 4);
-    ctx.lineTo(10, 6);
+    ctx.moveTo(6, -5);
+    ctx.lineTo(50, -3);
+    ctx.lineTo(58, 0);
+    ctx.lineTo(50, 3);
+    ctx.lineTo(6, 5);
     ctx.closePath();
-    ctx.fillStyle = '#a8a8a8';
+    ctx.fillStyle = '#b0b0b0';
     ctx.fill();
-    ctx.strokeStyle = '#686868';
+    ctx.strokeStyle = '#707070';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    
+    // Parlaklik
+    ctx.fillStyle = '#d0d0d0';
+    ctx.beginPath();
+    ctx.moveTo(10, -2);
+    ctx.lineTo(48, 0);
+    ctx.lineTo(10, 0);
+    ctx.closePath();
+    ctx.fill();
+    
+    ctx.restore();
+}
+
+// KAZMA
+function drawPickaxe(x, y) {
+    ctx.save();
+    ctx.translate(x, y);
+    
+    // Sap
+    ctx.fillStyle = '#8B5A2B';
+    ctx.strokeStyle = '#5D3A1A';
     ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.roundRect(-10, -4, 50, 8, 2);
+    ctx.fill();
     ctx.stroke();
     
-    ctx.fillStyle = '#c8c8c8';
+    // Kazma basi
+    ctx.fillStyle = '#707070';
+    ctx.strokeStyle = '#404040';
+    ctx.lineWidth = 2;
+    
+    // Ust uc
     ctx.beginPath();
-    ctx.moveTo(14, -3);
-    ctx.lineTo(52, -1);
-    ctx.lineTo(52, 1);
-    ctx.lineTo(14, 0);
+    ctx.moveTo(32, -3);
+    ctx.lineTo(55, -18);
+    ctx.lineTo(58, -14);
+    ctx.lineTo(38, 0);
     ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    
+    // Alt uc
+    ctx.beginPath();
+    ctx.moveTo(32, 3);
+    ctx.lineTo(55, 18);
+    ctx.lineTo(58, 14);
+    ctx.lineTo(38, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    
+    ctx.restore();
+}
+
+// CEKIC
+function drawHammer(x, y) {
+    ctx.save();
+    ctx.translate(x, y);
+    
+    // Sap
+    ctx.fillStyle = '#8B5A2B';
+    ctx.strokeStyle = '#5D3A1A';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.roundRect(-10, -4, 45, 8, 2);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Cekic basi
+    ctx.fillStyle = '#505050';
+    ctx.strokeStyle = '#303030';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(28, -14, 22, 28, 3);
+    ctx.fill();
+    ctx.stroke();
+    
+    // Metal parlaklik
+    ctx.fillStyle = '#707070';
+    ctx.beginPath();
+    ctx.roundRect(30, -12, 6, 24, 2);
     ctx.fill();
     
     ctx.restore();
@@ -1796,49 +1916,81 @@ canvas.addEventListener('mouseup', () => {
     rightStick.style.transform = 'translate(0px, 0px)';
 });
 
-// Envanter secimi (Updated for unified inventory)
+// Envanter secimi - Guncellenmis sistem
 const invSlots = document.querySelectorAll('.inv-slot');
-invSlots.forEach(slot => {
-    slot.addEventListener('click', () => {
-        invSlots.forEach(s => s.classList.remove('selected'));
-        slot.classList.add('selected');
-        player.selectedItem = slot.dataset.item;
-        
-        // If it's a building item, try to build
-        if (slot.dataset.build) {
-            tryBuild(slot.dataset.build);
-        }
+
+function selectSlot(slotIndex) {
+    const slot = invSlots[slotIndex];
+    if (!slot) return;
+    
+    invSlots.forEach(s => {
+        s.classList.remove('selected');
+        s.classList.remove('build-mode');
     });
+    slot.classList.add('selected');
+    
+    player.selectedSlot = slotIndex;
+    player.selectedItem = slot.dataset.item || 'sword';
+    
+    // Yapi modu kontrolu
+    if (slot.dataset.build) {
+        player.buildMode = true;
+        player.buildType = slot.dataset.build;
+        slot.classList.add('build-mode');
+    } else {
+        player.buildMode = false;
+        player.buildType = null;
+    }
+}
+
+invSlots.forEach((slot, index) => {
+    slot.addEventListener('click', () => selectSlot(index));
     slot.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        invSlots.forEach(s => s.classList.remove('selected'));
-        slot.classList.add('selected');
-        player.selectedItem = slot.dataset.item;
-        
-        if (slot.dataset.build) {
-            tryBuild(slot.dataset.build);
-        }
+        selectSlot(index);
     });
 });
 
-// Keyboard shortcuts for all 8 slots
+// Klavye kisayollari
 document.addEventListener('keydown', (e) => {
+    if (!gameStarted) return;
+    
+    // 1-8 tuslari
     if (e.key >= '1' && e.key <= '8') {
-        const index = parseInt(e.key) - 1;
-        if (invSlots[index]) {
-            invSlots.forEach(s => s.classList.remove('selected'));
-            invSlots[index].classList.add('selected');
-            player.selectedItem = invSlots[index].dataset.item;
-            
-            if (invSlots[index].dataset.build) {
-                tryBuild(invSlots[index].dataset.build);
-            }
+        selectSlot(parseInt(e.key) - 1);
+    }
+    
+    // Space - yemek ye
+    if (e.key === ' ' || e.code === 'Space') {
+        e.preventDefault();
+        eatFood();
+    }
+    
+    // Q - yapi yerlestir
+    if (e.key === 'q' || e.key === 'Q') {
+        if (player.buildMode && player.buildType) {
+            tryBuild(player.buildType);
         }
     }
 });
 
-// Yapi yerlestirme
+// Yemek yeme fonksiyonu
+function eatFood() {
+    if (player.food > 0 && player.hp < player.maxHp) {
+        player.food--;
+        player.hp = Math.min(player.hp + 25, player.maxHp);
+        floatingTexts.push({
+            x: player.x, y: player.y - 40,
+            text: '+25 HP', color: '#4CAF50',
+            life: 40
+        });
+    }
+}
+
+// Yapi yerlestirme - Guncellenmis
 function tryBuild(type) {
+    if (!type) return;
+    
     const costs = {
         wall: { wood: 10, stone: 5 },
         spike: { wood: 20, stone: 5 },
@@ -1847,32 +1999,69 @@ function tryBuild(type) {
     };
     
     const cost = costs[type];
-    if (player.wood >= cost.wood && player.stone >= cost.stone) {
-        player.wood -= cost.wood;
-        player.stone -= cost.stone;
-        
-        const dist = 80;
-        const bx = player.x + Math.cos(player.angle) * dist;
-        const by = player.y + Math.sin(player.angle) * dist;
-        
-        entities.push({
-            type: type,
-            x: bx,
-            y: by,
-            radius: type === 'spike' ? 35 : 40,
-            rotation: 0,
-            angle: player.angle,
-            hp: type === 'turret' ? 200 : type === 'windmill' ? 150 : 100,
-            maxHp: type === 'turret' ? 200 : type === 'windmill' ? 150 : 100,
-            owner: 'player'
+    if (!cost) return;
+    
+    // Kaynak kontrolu
+    if (player.wood < cost.wood || player.stone < cost.stone) {
+        floatingTexts.push({
+            x: player.x, y: player.y - 40,
+            text: 'Not enough resources!', color: '#e74c3c',
+            life: 40
         });
-        
-        particles.push({
-            x: bx, y: by,
-            type: 'build',
-            life: 20
-        });
+        return;
     }
+    
+    // Yerlesim mesafesi
+    const dist = 85;
+    const bx = player.x + Math.cos(player.angle) * dist;
+    const by = player.y + Math.sin(player.angle) * dist;
+    
+    // Cakisma kontrolu
+    let canPlace = true;
+    entities.forEach(e => {
+        if (e.type === 'tree' || e.type === 'rock' || e.type === 'gold') return;
+        const d = Math.sqrt((e.x - bx)**2 + (e.y - by)**2);
+        if (d < 60) canPlace = false;
+    });
+    
+    if (!canPlace) {
+        floatingTexts.push({
+            x: player.x, y: player.y - 40,
+            text: 'Cannot place here!', color: '#e74c3c',
+            life: 40
+        });
+        return;
+    }
+    
+    // Kaynaklari harca
+    player.wood -= cost.wood;
+    player.stone -= cost.stone;
+    
+    // Yapiyi olustur
+    entities.push({
+        type: type,
+        x: bx,
+        y: by,
+        radius: type === 'spike' ? 35 : 40,
+        rotation: 0,
+        angle: player.angle,
+        hp: type === 'turret' ? 200 : type === 'windmill' ? 150 : 100,
+        maxHp: type === 'turret' ? 200 : type === 'windmill' ? 150 : 100,
+        owner: 'player'
+    });
+    
+    // Build efekti
+    particles.push({
+        x: bx, y: by,
+        type: 'build',
+        life: 25
+    });
+    
+    floatingTexts.push({
+        x: bx, y: by - 30,
+        text: '+' + type.toUpperCase(), color: '#4CAF50',
+        life: 40
+    });
 }
 
 // ==========================================
@@ -1923,10 +2112,24 @@ function update() {
             player.angle = Math.atan2(dy, dx);
             
             if (player.attackCooldown <= 0) {
-                player.isAttacking = true;
-                player.attackProgress = 0;
-                player.attackCooldown = player.maxAttackCooldown;
-                performAttack();
+                // Yapi modunda veya silah modunda
+                const isTool = ['sword', 'pickaxe', 'hammer'].includes(player.selectedItem);
+                
+                if (player.buildMode) {
+                    // Yapi yerlestir
+                    player.attackCooldown = 15; // Daha hizli yapi
+                    tryBuild(player.buildType);
+                } else if (isTool) {
+                    // Normal saldiri
+                    player.isAttacking = true;
+                    player.attackProgress = 0;
+                    player.attackCooldown = player.maxAttackCooldown;
+                    performAttack();
+                } else if (player.selectedItem === 'food') {
+                    // Yemek ye
+                    player.attackCooldown = 20;
+                    eatFood();
+                }
             }
         }
     }
@@ -1941,12 +2144,16 @@ function update() {
     if (player.attackCooldown > 0) player.attackCooldown--;
     if (player.dashCooldown > 0) player.dashCooldown--;
     
-    // Saldiri animasyonu
+    // Saldiri animasyonu - Daha yumusak
     if (player.isAttacking) {
-        player.attackProgress += 0.15;
+        player.attackProgress += 0.08; // Daha yavas
+        // Sallanma acisi hesapla (ileri-geri hareket)
+        player.attackSwing = Math.sin(player.attackProgress * Math.PI * 2) * 1.2;
+        
         if (player.attackProgress >= 1) {
             player.isAttacking = false;
             player.attackProgress = 0;
+            player.attackSwing = 0;
         }
     }
     
@@ -2137,8 +2344,31 @@ function update() {
 }
 
 function performAttack() {
-    const attackRange = 70;
-    const attackAngle = 1.2;
+    const weapon = player.selectedItem;
+    
+    // Yapi modunda saldirama
+    if (player.buildMode) {
+        tryBuild(player.buildType);
+        return;
+    }
+    
+    // Yemek seciliyse ye
+    if (weapon === 'food') {
+        eatFood();
+        return;
+    }
+    
+    // Silah bazli ozellikler
+    const weaponStats = {
+        sword: { range: 75, angle: 1.3, damage: player.damage, resourceBonus: 1 },
+        pickaxe: { range: 65, angle: 1.0, damage: player.damage * 0.7, resourceBonus: 2 }, // Kaynak icin daha iyi
+        hammer: { range: 60, angle: 0.9, damage: player.damage * 0.5, resourceBonus: 1.5 }  // Yapi hasar
+    };
+    
+    const stats = weaponStats[weapon] || weaponStats.sword;
+    const attackRange = stats.range;
+    const attackAngle = stats.angle;
+    const attackDamage = Math.floor(stats.damage);
     
     entities.forEach(e => {
         const dx = e.x - player.x;
@@ -2150,7 +2380,13 @@ function performAttack() {
         while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
         
         if (dist < attackRange + (e.radius || 40) && Math.abs(angleDiff) < attackAngle) {
-            e.hp -= player.damage;
+            // Kaynak toplama bonusu
+            let damage = attackDamage;
+            if (['tree', 'rock', 'gold'].includes(e.type) && weapon === 'pickaxe') {
+                damage = Math.floor(attackDamage * 1.5); // Kazma kaynak icin daha etkili
+            }
+            
+            e.hp -= damage;
             
             // Particles
             for (let i = 0; i < 5; i++) {
@@ -2166,20 +2402,21 @@ function performAttack() {
             
             floatingTexts.push({
                 x: e.x, y: e.y - 30,
-                text: '-' + player.damage, color: '#f8d850',
+                text: '-' + damage, color: '#f8d850',
                 life: 40
             });
             
             if (e.hp <= 0) {
-                // Kaynak ver
+                // Kaynak ver - silaha gore bonus
+                const bonus = stats.resourceBonus;
                 if (e.type === 'tree') {
-                    player.wood += 15 + Math.floor(Math.random() * 10);
+                    player.wood += Math.floor((15 + Math.random() * 10) * bonus);
                     player.xp += 5;
                 } else if (e.type === 'rock') {
-                    player.stone += 10 + Math.floor(Math.random() * 8);
+                    player.stone += Math.floor((10 + Math.random() * 8) * bonus);
                     player.xp += 8;
                 } else if (e.type === 'gold') {
-                    player.gold += 5 + Math.floor(Math.random() * 5);
+                    player.gold += Math.floor((5 + Math.random() * 5) * bonus);
                     player.xp += 15;
                 } else if (['wolf', 'cow', 'pig'].includes(e.type)) {
                     player.food += 5;
