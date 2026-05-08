@@ -1,0 +1,30 @@
+{
+  "name": "Sploop.io Clone",
+  "short_name": "Sploop",
+  "description": "Craft, Build, Survive!",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#4f6731",
+  "theme_color": "#f3c843",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-light-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
