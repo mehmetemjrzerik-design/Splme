@@ -21,35 +21,103 @@
             z-index: 1000;
         }
 
-        /* Logo */
+        /* Logo Container */
+        #logo-container {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            margin-bottom: 5px;
+        }
+        
+        /* Main Logo - Sploop */
         #game-logo {
             font-family: 'Fredoka One', cursive;
-            font-size: clamp(52px, 14vw, 90px);
+            font-size: clamp(60px, 15vw, 100px);
             color: #fff;
             text-shadow: 
-                0 4px 0 #3a7a28,
-                0 8px 0 #2a5a18,
+                0 4px 0 #3d7a30,
+                0 8px 0 #2d5a20,
                 0 10px 15px rgba(0,0,0,0.3);
-            margin-bottom: 8px;
-            letter-spacing: 3px;
+            letter-spacing: 2px;
+            line-height: 1;
         }
-        #game-logo span { color: #f8d850; }
+        
+        /* .io part */
+        #logo-io {
+            display: flex;
+            align-items: flex-end;
+            margin-left: -5px;
+            margin-bottom: 8px;
+        }
+        
+        #logo-dot {
+            font-family: 'Fredoka One', cursive;
+            font-size: clamp(50px, 12vw, 80px);
+            color: #fff;
+            text-shadow: 
+                0 4px 0 #3d7a30,
+                0 8px 0 #2d5a20;
+            line-height: 1;
+        }
+        
+        #logo-i-container {
+            position: relative;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        #logo-i {
+            font-family: 'Fredoka One', cursive;
+            font-size: clamp(50px, 12vw, 80px);
+            color: #fff;
+            text-shadow: 
+                0 4px 0 #3d7a30,
+                0 8px 0 #2d5a20;
+            line-height: 1;
+        }
+        
+        #logo-i-dot {
+            position: absolute;
+            top: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: clamp(16px, 3.5vw, 24px);
+            height: clamp(16px, 3.5vw, 24px);
+            background: linear-gradient(180deg, #d4b42a 0%, #b89a20 100%);
+            border-radius: 50%;
+            box-shadow: 
+                0 3px 0 #8a7518,
+                inset 0 2px 0 rgba(255,255,255,0.2);
+            z-index: 10;
+        }
+        
+        #logo-o {
+            font-family: 'Fredoka One', cursive;
+            font-size: clamp(50px, 12vw, 80px);
+            color: #fff;
+            text-shadow: 
+                0 4px 0 #3d7a30,
+                0 8px 0 #2d5a20;
+            line-height: 1;
+        }
 
         #menu-subtitle {
-            color: rgba(255,255,255,0.85);
-            font-size: 18px;
+            color: #8a9a7a;
+            font-size: 20px;
             font-weight: 700;
-            margin-bottom: 35px;
-            letter-spacing: 1px;
+            margin-bottom: 30px;
+            letter-spacing: 2px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
         }
 
         /* Name Input Container - Sploop.io style */
         #name-input-container {
-            background: rgba(0,0,0,0.35);
-            border-radius: 14px;
-            padding: 10px;
-            margin-bottom: 18px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            background: rgba(0,0,0,0.25);
+            border-radius: 12px;
+            padding: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
         }
         #player-name-input {
             width: 320px;
@@ -67,60 +135,70 @@
         #player-name-input::placeholder { color: #999; }
         #player-name-input:focus { background: #fff; }
 
+        /* Play Button Container */
+        #play-btn-container {
+            background: rgba(0,0,0,0.25);
+            border-radius: 12px;
+            padding: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.25);
+        }
+        
         /* Play Button - Sploop.io red style */
         #play-btn {
             width: 320px;
-            padding: 20px 40px;
-            font-size: 28px;
+            padding: 18px 40px;
+            font-size: 26px;
             font-family: 'Fredoka One', cursive;
             font-weight: 400;
             color: #fff;
             background: linear-gradient(180deg, #e85a5a 0%, #d04545 100%);
             border: none;
-            border-radius: 14px;
+            border-radius: 10px;
             cursor: pointer;
             text-shadow: 0 2px 0 rgba(0,0,0,0.25);
             box-shadow: 
-                0 8px 0 #a83535,
-                0 12px 25px rgba(0,0,0,0.35);
+                0 6px 0 #a83535;
             transition: all 0.1s;
-            margin-bottom: 22px;
             letter-spacing: 2px;
         }
-        #play-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 0 #a83535, 0 14px 30px rgba(0,0,0,0.4); }
+        #play-btn:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 8px 0 #a83535;
+        }
         #play-btn:active { 
-            transform: translateY(6px); 
-            box-shadow: 0 2px 0 #a83535, 0 4px 10px rgba(0,0,0,0.3);
+            transform: translateY(4px); 
+            box-shadow: 0 2px 0 #a83535;
         }
 
-        /* Menu Buttons - Sploop.io dark style */
+        /* Menu Buttons - Sploop.io dark style with underline */
         #menu-buttons {
             display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
+            gap: 8px;
+            margin-top: 10px;
         }
         .menu-btn {
-            padding: 14px 28px;
+            padding: 14px 32px;
             font-size: 14px;
             font-family: 'Nunito', sans-serif;
             font-weight: 800;
             color: #fff;
-            background: rgba(0,0,0,0.5);
+            background: #3a3a3a;
             border: none;
-            border-radius: 10px;
+            border-bottom: 4px solid #555;
+            border-radius: 8px;
             cursor: pointer;
             transition: all 0.15s;
-            box-shadow: 0 4px 0 rgba(0,0,0,0.3);
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
         .menu-btn:hover {
-            background: rgba(0,0,0,0.6);
-            transform: translateY(-2px);
+            background: #4a4a4a;
+            transform: translateY(-1px);
         }
         .menu-btn:active {
             transform: translateY(2px);
-            box-shadow: 0 2px 0 rgba(0,0,0,0.3);
+            border-bottom-width: 2px;
         }
 
         /* Leaderboard (Menu) - Sploop.io style */
@@ -622,14 +700,26 @@
             <div class="lb-entry"><span class="lb-rank">8.</span><span class="lb-name">Legend</span><span class="lb-score">150K</span></div>
         </div>
 
-        <h1 id="game-logo">Sploop<span>.io</span></h1>
+        <div id="logo-container">
+            <h1 id="game-logo">Sploop</h1>
+            <div id="logo-io">
+                <span id="logo-dot">.</span>
+                <span id="logo-i-container">
+                    <span id="logo-i-dot"></span>
+                    <span id="logo-i">ı</span>
+                </span>
+                <span id="logo-o">o</span>
+            </div>
+        </div>
         <p id="menu-subtitle">Craft, Build, Survive!</p>
         
         <div id="name-input-container">
             <input type="text" id="player-name-input" placeholder="Enter your name..." maxlength="16">
         </div>
         
-        <button id="play-btn">PLAY</button>
+        <div id="play-btn-container">
+            <button id="play-btn">PLAY</button>
+        </div>
         
         <div id="menu-buttons">
             <button class="menu-btn" id="shop-btn">SHOP</button>
