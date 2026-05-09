@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  reactCompiler: true,
+  /* Turbopack veya React Compiler ayarları varsa burada false yapın */
+  experimental: {
+    // reactCompiler: false, // Eğer hata devam ederse bunu ekleyin
+  }
 };
 
 export default nextConfig;
