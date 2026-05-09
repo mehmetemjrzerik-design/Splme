@@ -970,6 +970,115 @@ const floatingTexts = [];
 const projectiles = [];
 const bots = [];
 
+function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+
+function getColliderRadius(obj) {
+    if (!obj) return 0;
+    if (typeof obj.radius === 'number') return obj.radius;
+    const s = typeof obj.scale === 'number' ? obj.scale : 1;
+    if (obj.type === 'tree') return 72 * s;
+    if (obj.type === 'rock') return 42 * s;
+    if (obj.type === 'gold') return 42 * s;
+    if (obj.type === 'wall') return 55;
+    if (obj.type === 'spike') return 40;
+    if (obj.type === 'windmill') return 70;
+    if (obj.type === 'turret') return 38;
+    return 0;
+}
+
+function isMobType(t) { return t === 'wolf' || t === 'cow' || t === 'pig'; }
+function isObstacleType(t) { return t === 'tree' || t === 'rock' || t === 'gold' || t === 'wall' || t === 'spike' || t === 'windmill' || t === 'turret'; }
+
+function applyWorldBounds(obj) {
+    const r = getColliderRadius(obj);
+    obj.x = clamp(obj.x, r + 20, world.width - r - 20);
+    obj.y = clamp(obj.y, r + 20, world.height - r - 20);
+}
+
+function separateCircles(a, ra, b, rb, wA, wB) {
+    let dx = b.x - a.x;
+    let dy = b.y - a.y;
+    const minDist = ra + rb;
+    const dist2 = dx * dx + dy * dy;
+    if (dist2 >= minDist * minDist) return;
+    if (dist2 === 0) {
+        dx = 1;
+        dy = 0;
+    }
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    const nx = dx / dist;
+    const ny = dy / dist;
+    const overlap = minDist - dist;
+    if (wA) {
+        a.x -= nx * overlap * wA;
+        a.y -= ny * overlap * wA;
+    }
+    if (wB) {
+        b.x += nx * overlap * wB;
+        b.y += ny * overlap * wB;
+    }
+}
+
+function canPlaceAt(x, y, r) {
+    const pad = r + 20;
+    if (x < pad || y < pad || x > world.width - pad || y > world.height - pad) return false;
+
+    const d = { x, y, radius: r };
+    separateCircles(d, r, player, player.radius, 1, 0);
+    if (d.x !== x || d.y !== y) return false;
+
+    for (const bot of bots) {
+        const rr = bot.radius;
+        const dx = bot.x - x;
+        const dy = bot.y - y;
+        const md = r + rr;
+        if (dx * dx + dy * dy < md * md) return false;
+    }
+
+    for (const ent of entities) {
+        const rr = getColliderRadius(ent) || (isMobType(ent.type) ? ent.radius : 0);
+        if (!rr) continue;
+        const dx = ent.x - x;
+        const dy = ent.y - y;
+        const md = r + rr;
+        if (dx * dx + dy * dy < md * md) return false;
+    }
+    return true;
+}
+
+function resolveCollisions() {
+    const dynamics = [player, ...bots, ...entities.filter(e => isMobType(e.type))];
+    const obstacles = entities.filter(e => isObstacleType(e.type));
+
+    for (const a of dynamics) {
+        const ra = getColliderRadius(a) || a.radius;
+        for (const o of obstacles) {
+            if (o === a) continue;
+            const ro = getColliderRadius(o);
+            if (!ro) continue;
+            const dx = o.x - a.x;
+            const dy = o.y - a.y;
+            const md = ra + ro;
+            if (dx * dx + dy * dy < md * md) separateCircles(a, ra, o, ro, 1, 0);
+        }
+    }
+
+    for (let i = 0; i < dynamics.length; i++) {
+        const a = dynamics[i];
+        const ra = getColliderRadius(a) || a.radius;
+        for (let j = i + 1; j < dynamics.length; j++) {
+            const b = dynamics[j];
+            const rb = getColliderRadius(b) || b.radius;
+            const dx = b.x - a.x;
+            const dy = b.y - a.y;
+            const md = ra + rb;
+            if (dx * dx + dy * dy < md * md) separateCircles(a, ra, b, rb, 0.5, 0.5);
+        }
+    }
+
+    for (const a of dynamics) applyWorldBounds(a);
+}
+
 // Shop Items
 const shopItems = {
     hats: [
@@ -1659,31 +1768,37 @@ function drawGround() {
 // ==========================================
 function spawnEntities() {
     for (let i = 0; i < 120; i++) {
+        const scale = 0.8 + Math.random() * 0.4;
         entities.push({
             type: 'tree',
             x: Math.random() * (world.width - 200) + 100,
             y: Math.random() * (world.height - 200) + 100,
-            scale: 0.8 + Math.random() * 0.4,
+            scale,
+            radius: 72 * scale,
             hp: 100, maxHp: 100
         });
     }
     
     for (let i = 0; i < 60; i++) {
+        const scale = 0.7 + Math.random() * 0.5;
         entities.push({
             type: 'rock',
             x: Math.random() * (world.width - 200) + 100,
             y: Math.random() * (world.height - 200) + 100,
-            scale: 0.7 + Math.random() * 0.5,
+            scale,
+            radius: 42 * scale,
             hp: 150, maxHp: 150
         });
     }
     
     for (let i = 0; i < 25; i++) {
+        const scale = 0.6 + Math.random() * 0.4;
         entities.push({
             type: 'gold',
             x: Math.random() * (world.width - 200) + 100,
             y: Math.random() * (world.height - 200) + 100,
-            scale: 0.6 + Math.random() * 0.4,
+            scale,
+            radius: 42 * scale,
             hp: 200, maxHp: 200
         });
     }
@@ -1897,12 +2012,32 @@ buildBtns.forEach(btn => {
             player.stone -= cost.stone;
             
             const spawnDist = player.radius + 60;
-            const spawnX = player.x + Math.cos(player.angle) * spawnDist;
-            const spawnY = player.y + Math.sin(player.angle) * spawnDist;
+            let spawnX = player.x + Math.cos(player.angle) * spawnDist;
+            let spawnY = player.y + Math.sin(player.angle) * spawnDist;
+            const r = getColliderRadius({ type }) || 55;
+
+            let placed = false;
+            for (let i = 0; i < 12; i++) {
+                const x = spawnX + Math.cos(player.angle) * i * 18;
+                const y = spawnY + Math.sin(player.angle) * i * 18;
+                if (canPlaceAt(x, y, r)) {
+                    spawnX = x;
+                    spawnY = y;
+                    placed = true;
+                    break;
+                }
+            }
+
+            if (!placed) {
+                player.wood += cost.wood;
+                player.stone += cost.stone;
+                return;
+            }
             
             entities.push({
                 type: type,
                 x: spawnX, y: spawnY,
+                radius: r,
                 angle: player.angle,
                 rotation: 0,
                 hp: type === 'wall' ? 400 : type === 'spike' ? 200 : type === 'windmill' ? 300 : 250,
@@ -2107,9 +2242,6 @@ function update() {
     player.x = Math.max(player.radius + 20, Math.min(world.width - player.radius - 20, player.x));
     player.y = Math.max(player.radius + 20, Math.min(world.height - player.radius - 20, player.y));
     
-    camera.x = player.x;
-    camera.y = player.y;
-    
     // Cooldown
     if (player.attackCooldown > 0) player.attackCooldown--;
     
@@ -2236,6 +2368,10 @@ function update() {
         
         bot.score += Math.random() < 0.1 ? 1 : 0;
     }
+
+    resolveCollisions();
+    camera.x = player.x;
+    camera.y = player.y;
     
     // Mermiler
     for (let i = projectiles.length - 1; i >= 0; i--) {
