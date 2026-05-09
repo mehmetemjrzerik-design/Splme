@@ -1,0 +1,7 @@
+{
+  "buildCommand": "pnpm build",
+  "framework": "nextjs",
+  "nodeVersion": "20.x",
+  "outputDirectory": ".next",
+  "installCommand": "corepack enable && pnpm install --frozen-lockfile"
+}
