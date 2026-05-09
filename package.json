@@ -21,7 +21,7 @@
     "lucide-react": "^0.513.0"
   },
   "devDependencies": {
-    "babel-plugin-react-compiler": "^0.0.0-experimental-591147e-20240517"
+    "babel-plugin-react-compiler": "^0.0.0-experimental-591147e-20240517",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
