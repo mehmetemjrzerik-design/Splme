@@ -42,7 +42,7 @@
             display: flex;
             justify-content: center;
             align-items: flex-start;
-            padding: 18px 16px 24px;
+            padding: 14px 14px 24px;
             z-index: 1000;
         }
         #main-menu::before {
@@ -59,26 +59,27 @@
         }
 
         #menu-shell {
-            width: min(1100px, calc(100vw - 32px));
+            width: min(1280px, calc(100vw - 24px));
             display: flex;
             flex-direction: column;
-            gap: 14px;
-            margin-top: clamp(8px, 2.5vh, 18px);
+            gap: 10px;
+            margin-top: clamp(6px, 1.5vh, 12px);
             position: relative;
             z-index: 1;
         }
 
         #menu-header {
+            position: relative;
             display: flex;
+            flex-direction: column;
             align-items: center;
-            justify-content: space-between;
-            gap: 14px;
-            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 8px;
         }
 
         #game-logo {
             font-family: 'Fredoka One', cursive;
-            font-size: clamp(34px, 6vw, 56px);
+            font-size: clamp(34px, 7vw, 62px);
             color: #fff;
             letter-spacing: 1px;
             line-height: 1;
@@ -90,55 +91,214 @@
         }
         #game-logo span { color: var(--accent); }
 
-        #menu-nav {
+        #auth-buttons {
+            position: absolute;
+            top: 2px;
+            right: 0;
             display: flex;
             gap: 10px;
-            flex-wrap: wrap;
+            align-items: center;
+        }
+        .auth-btn {
+            border: none;
+            border-radius: 12px;
+            padding: 10px 12px;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 900;
+            font-size: 13px;
+            letter-spacing: 0.4px;
+            color: #fff;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 0 5px 0 rgba(0,0,0,0.35);
+        }
+        .auth-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0,0,0,0.35); }
+        #login-btn { background: linear-gradient(180deg, #f0743a 0%, #d7581e 100%); }
+        #signup-btn { background: linear-gradient(180deg, #2ebec1 0%, #179aa0 100%); }
+
+        #menu-nav {
+            display: flex;
+            gap: 20px;
+            flex-wrap: nowrap;
             justify-content: center;
+            align-items: flex-end;
         }
 
         .menu-tab {
             appearance: none;
-            border: 2px solid var(--tab-border);
-            background: var(--tab-bg);
-            color: var(--text);
-            padding: 10px 14px;
-            border-radius: 12px;
+            border: none;
+            background: transparent;
+            color: #fff;
+            padding: 0;
+            border-radius: 0;
             font-family: 'Nunito', sans-serif;
-            font-weight: 800;
-            font-size: 14px;
+            font-weight: 900;
+            font-size: 22px;
             cursor: pointer;
-            letter-spacing: 0.3px;
-            box-shadow: 0 10px 22px rgba(0, 0, 0, 0.25);
-            transition: transform 0.08s ease, background 0.12s ease, border-color 0.12s ease;
+            letter-spacing: 0.8px;
+            text-shadow:
+                0 3px 0 rgba(0,0,0,0.6),
+                0 0 12px rgba(0,0,0,0.15);
+            transition: transform 0.08s ease, filter 0.12s ease;
             text-transform: uppercase;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
         }
-        .menu-tab:hover {
-            transform: translateY(-1px);
-            border-color: rgba(255, 255, 255, 0.22);
-        }
+        .menu-tab:hover { transform: translateY(-1px); }
         .menu-tab:active { transform: translateY(1px); }
         .menu-tab.active {
-            background: rgba(243, 200, 67, 0.95);
-            color: rgba(20, 20, 20, 0.95);
-            border-color: rgba(0, 0, 0, 0.15);
-            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+            color: #ffe37a;
+            filter: drop-shadow(0 0 10px rgba(255, 212, 58, 0.55));
+        }
+
+        .tab-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 14px;
+            border: 4px solid rgba(0,0,0,0.45);
+            box-shadow: 0 6px 0 rgba(0,0,0,0.25);
+            background: rgba(255,255,255,0.7);
+        }
+        #profile-btn .tab-icon { background: radial-gradient(circle at 30% 30%, #fff, #d7c7ac); }
+        #shop-btn .tab-icon { background: linear-gradient(180deg, #ffd34a, #e7a81e); }
+        #game-btn .tab-icon { background: linear-gradient(180deg, #3f4b57, #1f2831); }
+        #skins-btn .tab-icon { background: linear-gradient(180deg, #ff87bf, #f0529a); }
+        #changelog-btn .tab-icon { background: linear-gradient(180deg, #c9a56c, #a27733); }
+
+        #settings-btn {
+            position: absolute;
+            left: 0;
+            top: 6px;
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            border: 5px solid rgba(0,0,0,0.35);
+            background: linear-gradient(180deg, #ffd34a, #e7a81e);
+            box-shadow: 0 6px 0 rgba(0,0,0,0.25);
+            padding: 0;
+        }
+        #settings-btn .tab-icon { display: none; }
+        #settings-btn .tab-label { display: none; }
+        .gear-icon {
+            width: 28px;
+            height: 28px;
+            display: block;
+            margin: 0 auto;
+            margin-top: 12px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23ffffff' d='M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.16 7.16 0 0 0-1.63-.94l-.36-2.54A.5.5 0 0 0 13.9 1h-3.8a.5.5 0 0 0-.49.42l-.36 2.54c-.58.23-1.12.54-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.71 7.48a.5.5 0 0 0 .12.64l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32c.13.22.39.3.6.22l2.39-.96c.5.4 1.05.71 1.63.94l.36 2.54c.04.24.25.42.49.42h3.8c.24 0 .45-.18.49-.42l.36-2.54c.58-.23 1.12-.54 1.63-.94l2.39.96c.22.09.47 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58zM12 15.5A3.5 3.5 0 1 1 12 8a3.5 3.5 0 0 1 0 7.5z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-size: contain;
+            filter: drop-shadow(0 2px 0 rgba(0,0,0,0.45));
         }
 
         #menu-content {
             display: grid;
-            grid-template-columns: 1.15fr 0.85fr;
-            gap: 14px;
+            grid-template-areas: "left main right";
+            grid-template-columns: 320px minmax(0, 1fr) 360px;
+            gap: 16px;
             align-items: start;
         }
 
-        .menu-panel {
-            background: var(--panel-bg);
-            border: 3px solid var(--panel-border);
+        #menu-left-panel { grid-area: left; }
+        #menu-main-panel { grid-area: main; }
+        #menu-side-panel { grid-area: right; }
+
+        #menu-left-panel {
+            background: linear-gradient(180deg, #6cc1dd 0%, #4f90a9 100%);
+            border-color: rgba(0,0,0,0.6);
+            min-height: 350px;
+            position: relative;
+            overflow: hidden;
+        }
+        #left-ad-title {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            padding: 6px 10px;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.85);
+            border: 4px solid rgba(0,0,0,0.35);
+            font-weight: 900;
+            letter-spacing: 0.6px;
+            color: #ff6a3a;
+            text-transform: uppercase;
+        }
+        #left-ad-scene {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            padding: 18px 18px 16px;
+        }
+        .left-ad-blob {
+            width: 78px;
+            height: 120px;
+            border-radius: 40px;
+            background: #61c46b;
+            border: 5px solid rgba(0,0,0,0.35);
+            box-shadow: 0 8px 0 rgba(0,0,0,0.25);
+        }
+        .left-ad-car {
+            width: 120px;
+            height: 42px;
+            border-radius: 14px;
+            background: #ffd34a;
+            border: 5px solid rgba(0,0,0,0.35);
+            box-shadow: 0 8px 0 rgba(0,0,0,0.25);
+        }
+
+        #menu-main-panel {
+            background: rgba(0,0,0,0.35);
+        }
+
+        #webgames-title {
+            font-family: 'Fredoka One', cursive;
+            font-size: 22px;
+            color: #fff;
+            text-align: center;
+            letter-spacing: 0.8px;
+            text-shadow: 0 3px 0 rgba(0,0,0,0.6);
+            margin: 6px 0 2px;
+        }
+        #webgames-subtitle {
+            font-weight: 900;
+            color: rgba(0,0,0,0.65);
+            text-align: center;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+        #webgames-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+        .webgames-tile {
             border-radius: 18px;
-            padding: 16px;
-            box-shadow: 0 18px 42px var(--panel-shadow);
-            backdrop-filter: blur(10px);
+            border: 5px solid rgba(0,0,0,0.35);
+            box-shadow: 0 8px 0 rgba(0,0,0,0.25);
+            height: 110px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Fredoka One', cursive;
+            color: rgba(0,0,0,0.55);
+            font-size: 18px;
+        }
+        .webgames-purple { background: #7b57f0; }
+        .webgames-orange { background: #ff7a1a; }
+        .webgames-yellow { background: #ffc533; }
+        .webgames-green { background: #1fbf63; }
+
+        .menu-panel {
+            background: rgba(0,0,0,0.45);
+            border: 5px solid rgba(0,0,0,0.55);
+            border-radius: 18px;
+            padding: 14px;
+            box-shadow: 0 10px 0 rgba(0,0,0,0.25);
+            backdrop-filter: none;
         }
 
         .menu-view { display: none; }
@@ -191,30 +351,30 @@
             color: var(--text);
             outline: none;
             cursor: pointer;
+            -webkit-appearance: none;
+            appearance: none;
         }
 
         #play-btn {
             width: 100%;
             padding: 16px 18px;
-            font-size: 28px;
+            font-size: 34px;
             font-family: 'Fredoka One', cursive;
             font-weight: 400;
-            color: #1b1304;
-            background: linear-gradient(180deg, #f3c843 0%, #e0a72a 100%);
-            border: none;
+            color: #fff;
+            background: linear-gradient(180deg, #2dd18b 0%, #15a96e 100%);
+            border: 5px solid rgba(0,0,0,0.35);
             border-radius: 16px;
             cursor: pointer;
             box-shadow:
-                0 8px 0 rgba(153, 102, 10, 0.9),
-                0 18px 36px rgba(0, 0, 0, 0.35);
+                0 8px 0 rgba(0, 0, 0, 0.35);
             transition: transform 0.08s ease, box-shadow 0.08s ease;
         }
         #play-btn:hover { transform: translateY(-2px); }
         #play-btn:active {
             transform: translateY(4px);
             box-shadow:
-                0 3px 0 rgba(153, 102, 10, 0.9),
-                0 10px 22px rgba(0, 0, 0, 0.35);
+                0 3px 0 rgba(0, 0, 0, 0.35);
         }
 
         #mode-row {
@@ -226,9 +386,9 @@
         .mode-btn {
             padding: 12px 10px;
             border-radius: 14px;
-            border: 2px solid rgba(255, 255, 255, 0.12);
-            background: rgba(0, 0, 0, 0.42);
-            color: var(--text);
+            border: 4px solid rgba(0,0,0,0.35);
+            background: linear-gradient(180deg, #ff7b4a 0%, #e05725 100%);
+            color: #fff;
             font-family: 'Nunito', sans-serif;
             font-weight: 900;
             letter-spacing: 0.3px;
@@ -238,9 +398,10 @@
         .mode-btn:hover { transform: translateY(-1px); }
         .mode-btn:active { transform: translateY(1px); }
         .mode-btn.active {
-            background: rgba(224, 122, 60, 0.95);
-            border-color: rgba(0, 0, 0, 0.15);
-            color: rgba(20, 20, 20, 0.95);
+            background: linear-gradient(180deg, #ff7b4a 0%, #e05725 100%);
+        }
+        .mode-btn:not(.active) {
+            background: linear-gradient(180deg, #4b5560 0%, #2b343e 100%);
         }
 
         #menu-leaderboard {
@@ -281,10 +442,16 @@
         .lb-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 800; }
         .lb-score { color: rgba(160, 255, 170, 0.95); font-weight: 900; }
 
-        @media (max-width: 860px) {
+        @media (max-width: 740px) {
             #menu-header { justify-content: center; }
-            #menu-content { grid-template-columns: 1fr; }
+            #menu-content { grid-template-columns: 1fr; grid-template-areas: "main" "left" "right"; }
             #region-select { width: 100%; }
+            #auth-buttons { position: static; justify-content: center; width: 100%; margin-top: 6px; }
+            #settings-btn { position: static; }
+            #menu-header { align-items: center; }
+            #menu-nav { gap: 12px; }
+            .menu-tab { font-size: 18px; }
+            .tab-icon { width: 46px; height: 46px; border-radius: 12px; }
         }
 
         /* ==================== SHOP POPUP ==================== */
@@ -653,18 +820,29 @@
     <div id="main-menu">
         <div id="menu-shell">
             <div id="menu-header">
+                <button class="menu-tab" id="settings-btn" type="button"><span class="gear-icon" aria-hidden="true"></span><span class="tab-label">AYARLAR</span></button>
+                <div id="auth-buttons">
+                    <button id="login-btn" class="auth-btn" type="button">GİRİŞ YAPMAK</button>
+                    <button id="signup-btn" class="auth-btn" type="button">ÜYE OLMAK</button>
+                </div>
                 <h1 id="game-logo">Sploop<span>.io</span></h1>
                 <div id="menu-nav">
-                    <button class="menu-tab" id="profile-btn" type="button">PROFİL</button>
-                    <button class="menu-tab" id="shop-btn" type="button">MAĞAZA</button>
-                    <button class="menu-tab active" id="game-btn" type="button">OYUN</button>
-                    <button class="menu-tab" id="skins-btn" type="button">DERİLER</button>
-                    <button class="menu-tab" id="changelog-btn" type="button">SIRALAMA</button>
-                    <button class="menu-tab" id="settings-btn" type="button">AYARLAR</button>
+                    <button class="menu-tab" id="profile-btn" type="button"><span class="tab-icon"></span><span class="tab-label">PROFİL</span></button>
+                    <button class="menu-tab" id="shop-btn" type="button"><span class="tab-icon"></span><span class="tab-label">MAĞAZA</span></button>
+                    <button class="menu-tab active" id="game-btn" type="button"><span class="tab-icon"></span><span class="tab-label">OYUN</span></button>
+                    <button class="menu-tab" id="skins-btn" type="button"><span class="tab-icon"></span><span class="tab-label">DERİLER</span></button>
+                    <button class="menu-tab" id="changelog-btn" type="button"><span class="tab-icon"></span><span class="tab-label">SIRALAMA</span></button>
                 </div>
             </div>
 
             <div id="menu-content">
+                <div class="menu-panel" id="menu-left-panel">
+                    <div id="left-ad-title">SHOOT UP</div>
+                    <div id="left-ad-scene">
+                        <div class="left-ad-blob"></div>
+                        <div class="left-ad-car"></div>
+                    </div>
+                </div>
                 <div class="menu-panel" id="menu-main-panel">
                     <div id="menu-view-game" class="menu-view active">
                         <div id="menu-subtitle">Craft, Build, Survive!</div>
@@ -796,14 +974,13 @@
 
                 <div class="menu-panel" id="menu-side-panel">
                     <div id="menu-side-mini" class="menu-side active">
-                        <div id="menu-leaderboard">
-                            <h3>SIRALAMA</h3>
-                            <div class="lb-entry"><span class="lb-rank">#1</span><span class="lb-name">ProPlayer</span><span class="lb-score">1.2M</span></div>
-                            <div class="lb-entry"><span class="lb-rank">#2</span><span class="lb-name">GameMaster</span><span class="lb-score">890K</span></div>
-                            <div class="lb-entry"><span class="lb-rank">#3</span><span class="lb-name">Destroyer</span><span class="lb-score">654K</span></div>
-                            <div class="lb-entry"><span class="lb-rank">#4</span><span class="lb-name">Builder123</span><span class="lb-score">432K</span></div>
-                            <div class="lb-entry"><span class="lb-rank">#5</span><span class="lb-name">Survivor</span><span class="lb-score">321K</span></div>
-                            <div class="lb-entry"><span class="lb-rank">#6</span><span class="lb-name">Hunter</span><span class="lb-score">210K</span></div>
+                        <div id="webgames-title">WEBGAMES</div>
+                        <div id="webgames-subtitle">GAMES TO CRACK!</div>
+                        <div id="webgames-grid">
+                            <div class="webgames-tile webgames-purple">G</div>
+                            <div class="webgames-tile webgames-orange">⚔</div>
+                            <div class="webgames-tile webgames-yellow">☺</div>
+                            <div class="webgames-tile webgames-green">☻</div>
                         </div>
                     </div>
 
