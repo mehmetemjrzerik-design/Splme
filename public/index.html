@@ -902,8 +902,15 @@
 // OYUN DEGISKENLERI
 // ==========================================
 const canvas = document.getElementById('gameCanvas');
+const minimapCanvas = document.getElementById('minimap');
+if (!(canvas instanceof HTMLCanvasElement) || !(minimapCanvas instanceof HTMLCanvasElement)) {
+    throw new Error('Canvas bulunamadi');
+}
 const ctx = canvas.getContext('2d');
-const mctx = document.getElementById('minimap').getContext('2d');
+const mctx = minimapCanvas.getContext('2d');
+if (!ctx || !mctx) {
+    throw new Error('2D context alinmadi');
+}
 
 let gameStarted = false;
 let playerName = 'Player';
@@ -914,11 +921,33 @@ let kills = 0;
 let age = 0;
 let ageTimer = 0;
 
+let dpr = 1;
+let viewW = 0;
+let viewH = 0;
+let minimapW = 150;
+let minimapH = 150;
+
 function resize() { 
-    canvas.width = window.innerWidth; 
-    canvas.height = window.innerHeight; 
+    dpr = window.devicePixelRatio || 1;
+    viewW = window.innerWidth;
+    viewH = window.innerHeight;
+    canvas.style.width = `${viewW}px`;
+    canvas.style.height = `${viewH}px`;
+    canvas.width = Math.floor(viewW * dpr);
+    canvas.height = Math.floor(viewH * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    const minimapContainer = document.getElementById('minimap-container');
+    const rect = minimapContainer ? minimapContainer.getBoundingClientRect() : { width: 150, height: 150 };
+    minimapW = Math.round(rect.width || 150);
+    minimapH = Math.round(rect.height || 150);
+    minimapCanvas.style.width = `${minimapW}px`;
+    minimapCanvas.style.height = `${minimapH}px`;
+    minimapCanvas.width = Math.floor(minimapW * dpr);
+    minimapCanvas.height = Math.floor(minimapH * dpr);
+    mctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
-window.addEventListener('resize', resize); 
+window.addEventListener('resize', resize, { passive: true }); 
 resize();
 
 const world = { width: 4000, height: 4000 };
@@ -1713,6 +1742,7 @@ function getAreaCenter(area) {
 
 function handleTouchStart(e) {
     if (!gameStarted) return;
+    e.preventDefault();
     for (let touch of e.changedTouches) {
         const leftRect = leftArea.getBoundingClientRect();
         const rightRect = rightArea.getBoundingClientRect();
@@ -1742,6 +1772,8 @@ function handleTouchStart(e) {
 }
 
 function handleTouchMove(e) {
+    if (!gameStarted) return;
+    e.preventDefault();
     for (let touch of e.changedTouches) {
         if (touch.identifier === leftJoystick.id) {
             leftJoystick.currX = touch.clientX;
@@ -2290,10 +2322,11 @@ function updateGameLeaderboard() {
 // CIZIM
 // ==========================================
 function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, viewW, viewH);
     
     ctx.save();
-    ctx.translate(canvas.width/2 - camera.x, canvas.height/2 - camera.y);
+    ctx.translate(viewW/2 - camera.x, viewH/2 - camera.y);
     
     drawGround();
     
@@ -2372,13 +2405,10 @@ function draw() {
     ctx.restore();
     
     // Minimap
-    const mm = document.getElementById('minimap');
-    mm.width = 150;
-    mm.height = 150;
     mctx.fillStyle = 'rgba(100, 140, 90, 0.95)';
-    mctx.fillRect(0, 0, 150, 150);
+    mctx.fillRect(0, 0, minimapW, minimapH);
     
-    const scale = 150 / world.width;
+    const scale = Math.min(minimapW / world.width, minimapH / world.height);
     for (const ent of entities) {
         if (ent.type === 'tree') mctx.fillStyle = '#7ab85a';
         else if (ent.type === 'rock') mctx.fillStyle = '#6a6a7e';
