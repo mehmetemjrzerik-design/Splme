@@ -23,9 +23,10 @@ function safeResolvePublicPath(urlPathname: string) {
   const stripped = decoded.split("?")[0].split("#")[0];
   const normalized = path.posix.normalize(stripped);
   const withoutLeading = normalized.replace(/^\/+/, "");
-  const fsPath = path.join(PUBLIC_DIR, withoutLeading);
-  if (!fsPath.startsWith(PUBLIC_DIR)) return null;
-  return fsPath;
+  const resolved = path.resolve(PUBLIC_DIR, withoutLeading);
+  const rel = path.relative(PUBLIC_DIR, resolved);
+  if (rel.startsWith("..") || path.isAbsolute(rel)) return null;
+  return resolved;
 }
 
 const server = http.createServer((req, res) => {
@@ -44,7 +45,7 @@ const server = http.createServer((req, res) => {
           res.end("Error loading game");
           return;
         }
-        res.writeHead(200, { "Content-Type": MIME_TYPES[".html"] });
+        res.writeHead(200, { "Content-Type": MIME_TYPES[".html"], "Cache-Control": "no-cache" });
         res.end(data);
       });
       return;
@@ -52,6 +53,13 @@ const server = http.createServer((req, res) => {
 
     const ext = path.extname(filePath).toLowerCase();
     const contentType = MIME_TYPES[ext] ?? "application/octet-stream";
+    const headers: Record<string, string> = { "Content-Type": contentType };
+    const base = path.basename(filePath);
+    if (ext === ".html" || ext === ".webmanifest" || base === "sw.js") {
+      headers["Cache-Control"] = "no-cache";
+    } else {
+      headers["Cache-Control"] = "public, max-age=3600";
+    }
 
     fs.readFile(filePath, (err, data) => {
       if (err) {
@@ -59,7 +67,7 @@ const server = http.createServer((req, res) => {
         res.end("Error loading game");
         return;
       }
-      res.writeHead(200, { "Content-Type": contentType });
+      res.writeHead(200, headers);
       res.end(data);
     });
   });

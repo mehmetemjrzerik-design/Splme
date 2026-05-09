@@ -31,6 +31,21 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
+  const accept = req.headers.get("accept") ?? "";
+  const isNavigation = req.mode === "navigate" || accept.includes("text/html");
+  if (isNavigation) {
+    event.respondWith(
+      fetch(req)
+        .then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put("/index.html", copy)).catch(() => {});
+          return res;
+        })
+        .catch(() => caches.match("/index.html"))
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(req).then((cached) => {
       if (cached) return cached;
@@ -44,4 +59,3 @@ self.addEventListener("fetch", (event) => {
     })
   );
 });
-
