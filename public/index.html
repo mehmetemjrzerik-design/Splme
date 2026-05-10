@@ -1,2312 +1,1968 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sploop.io Clone</title>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+    <title>Vortex.io - Battle Survival Game</title>
+    <meta name="theme-color" content="#1a472a">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body, html {
-            width: 100%; height: 100%; background: #3a5a28;
-            overflow: hidden; touch-action: none; font-family: 'Nunito', sans-serif; user-select: none;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
-        #gameCanvas { display: block; width: 100%; height: 100%; }
 
-        /* ==================== GIRIS MENUSU ==================== */
-        #main-menu {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, #4a7a38 0%, #3a5a28 50%, #2a4a18 100%);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 1000;
+        html, body {
+            width: 100%;
+            height: 100%;
+            font-family: 'Nunito', sans-serif;
+            background: #2d5a3f;
+            color: #fff;
+            overflow: hidden;
+            touch-action: manipulation;
         }
-        #menu-bg-pattern {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: 
-                radial-gradient(circle at 20% 30%, rgba(255,255,255,0.05) 0%, transparent 25%),
-                radial-gradient(circle at 80% 70%, rgba(255,255,255,0.05) 0%, transparent 25%),
-                radial-gradient(circle at 50% 50%, rgba(0,0,0,0.1) 0%, transparent 50%);
+
+        /* ==================== MENU SCREEN ==================== */
+        #menuScreen {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(180deg, #1a472a 0%, #0d2818 100%);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            gap: 20px;
+            transition: opacity 0.5s, visibility 0.5s;
+        }
+
+        #menuScreen.hidden {
+            opacity: 0;
+            visibility: hidden;
             pointer-events: none;
         }
 
-        #game-logo {
-            font-family: 'Fredoka One', cursive;
+        .menu-bg {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .floating-leaf {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: rgba(76, 175, 80, 0.4);
+            border-radius: 50% 0 50% 0;
+            animation: leafFall linear infinite;
+            opacity: 0;
+        }
+
+        @keyframes leafFall {
+            0% { transform: translateY(-20px) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.7; }
+            90% { opacity: 0.7; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+        .menu-content {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .game-title {
+            font-family: 'Lilita One', cursive;
             font-size: clamp(48px, 12vw, 80px);
             color: #fff;
-            text-shadow: 
-                0 4px 0 #2a5a18,
-                0 8px 0 #1a4a08,
-                0 12px 20px rgba(0,0,0,0.4);
-            margin-bottom: 10px;
+            text-shadow: 0 4px 0 #2d5a3f, 0 8px 0 #1a472a, 0 12px 25px rgba(0,0,0,0.5);
             letter-spacing: 2px;
         }
-        #game-logo span { color: #f8d850; }
 
-        #menu-subtitle {
-            color: rgba(255,255,255,0.7);
-            font-size: 16px;
-            margin-bottom: 30px;
+        .game-title .io {
+            color: #ffc107;
+            text-shadow: 0 4px 0 #ff9800, 0 8px 0 #e65100, 0 12px 25px rgba(0,0,0,0.5);
         }
 
-        /* Isim Girisi */
-        #name-input-container {
-            background: rgba(0,0,0,0.3);
-            border-radius: 12px;
-            padding: 8px;
-            margin-bottom: 20px;
+        .menu-panel {
+            background: linear-gradient(180deg, rgba(45,90,63,0.95) 0%, rgba(26,71,42,0.98) 100%);
+            border-radius: 16px;
+            padding: 24px;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+            border: 2px solid rgba(255,255,255,0.1);
         }
-        #player-name-input {
-            width: 280px;
-            padding: 15px 20px;
+
+        .nick-input {
+            width: 100%;
+            padding: 14px 18px;
+            font-family: 'Nunito', sans-serif;
             font-size: 18px;
-            font-family: 'Nunito', sans-serif;
             font-weight: 700;
-            border: none;
-            border-radius: 8px;
-            background: rgba(255,255,255,0.95);
-            color: #333;
             text-align: center;
+            background: rgba(0,0,0,0.3);
+            border: 3px solid rgba(255,255,255,0.15);
+            border-radius: 10px;
+            color: #fff;
             outline: none;
+            transition: all 0.2s;
+            margin-bottom: 16px;
         }
-        #player-name-input::placeholder { color: #999; }
 
-        /* Play Butonu */
-        #play-btn {
-            width: 280px;
-            padding: 18px 40px;
-            font-size: 24px;
-            font-family: 'Fredoka One', cursive;
-            font-weight: 400;
+        .nick-input::placeholder { color: rgba(255,255,255,0.4); }
+        .nick-input:focus { border-color: #4caf50; box-shadow: 0 0 0 3px rgba(76,175,80,0.3); }
+
+        .play-btn {
+            width: 100%;
+            padding: 16px;
+            font-family: 'Lilita One', cursive;
+            font-size: 28px;
             color: #fff;
-            background: linear-gradient(180deg, #e85a5a 0%, #c94040 100%);
+            background: linear-gradient(180deg, #4caf50 0%, #388e3c 100%);
             border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            text-shadow: 0 2px 0 rgba(0,0,0,0.2);
-            box-shadow: 
-                0 6px 0 #a03030,
-                0 10px 20px rgba(0,0,0,0.3);
-            transition: all 0.1s;
-            margin-bottom: 20px;
-        }
-        #play-btn:hover { transform: translateY(-2px); }
-        #play-btn:active { 
-            transform: translateY(4px); 
-            box-shadow: 0 2px 0 #a03030, 0 4px 10px rgba(0,0,0,0.3);
-        }
-
-        /* Menu Butonlari */
-        #menu-buttons {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 30px;
-        }
-        .menu-btn {
-            padding: 12px 24px;
-            font-size: 15px;
-            font-family: 'Nunito', sans-serif;
-            font-weight: 700;
-            color: #fff;
-            background: rgba(0,0,0,0.4);
-            border: 3px solid rgba(255,255,255,0.2);
             border-radius: 10px;
             cursor: pointer;
+            box-shadow: 0 5px 0 #2e7d32, 0 8px 15px rgba(0,0,0,0.3);
             transition: all 0.15s;
-        }
-        .menu-btn:hover {
-            background: rgba(0,0,0,0.5);
-            border-color: rgba(255,255,255,0.4);
-            transform: scale(1.05);
+            letter-spacing: 2px;
         }
 
-        /* Leaderboard (Menu) */
-        #menu-leaderboard {
+        .play-btn:hover { transform: translateY(-2px); box-shadow: 0 7px 0 #2e7d32, 0 12px 20px rgba(0,0,0,0.4); }
+        .play-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #2e7d32; }
+
+        /* Online Badge */
+        .online-badge {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(180deg, rgba(45,90,63,0.95) 0%, rgba(26,71,42,0.98) 100%);
+            padding: 10px 16px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,255,255,0.1);
+            z-index: 100;
+        }
+
+        .online-dot {
+            width: 8px;
+            height: 8px;
+            background: #4caf50;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.6; }
+        }
+
+        /* ==================== GAME CANVAS ==================== */
+        #gameCanvas {
+            position: fixed;
+            inset: 0;
+            display: block;
+        }
+
+        /* ==================== GAME UI - SPLOOP STYLE ==================== */
+        
+        /* Health & Resource Bars - Bottom Center */
+        #gameUI {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 100;
+            display: none;
+        }
+
+        #gameUI.active {
+            display: block;
+        }
+
+        #gameUI * {
+            pointer-events: auto;
+        }
+
+        /* Stats Bar - Bottom Center */
+        .stats-bar {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            width: 320px;
+        }
+
+        .stat-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stat-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .stat-icon.health { background: linear-gradient(180deg, #e53935 0%, #c62828 100%); }
+        .stat-icon.food { background: linear-gradient(180deg, #ff9800 0%, #ef6c00 100%); }
+        .stat-icon.xp { background: linear-gradient(180deg, #8bc34a 0%, #689f38 100%); }
+
+        .stat-bar-outer {
+            flex: 1;
+            height: 22px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 11px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+
+        .stat-bar-inner {
+            height: 100%;
+            border-radius: 9px;
+            transition: width 0.3s ease;
+            position: relative;
+        }
+
+        .stat-bar-inner.health { background: linear-gradient(180deg, #ef5350 0%, #e53935 100%); }
+        .stat-bar-inner.food { background: linear-gradient(180deg, #ffb74d 0%, #ff9800 100%); }
+        .stat-bar-inner.xp { background: linear-gradient(180deg, #aed581 0%, #8bc34a 100%); }
+
+        .stat-bar-inner::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 4px;
+            right: 4px;
+            height: 4px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 2px;
+        }
+
+        .stat-value {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 11px;
+            font-weight: 800;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+        }
+
+        /* Age Badge */
+        .age-badge {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(180deg, rgba(45,90,63,0.95) 0%, rgba(26,71,42,0.98) 100%);
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-family: 'Lilita One', cursive;
+            font-size: 18px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,255,255,0.15);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .age-badge span {
+            color: #ffc107;
+        }
+
+        /* Leaderboard - Top Right */
+        .leaderboard {
             position: absolute;
             top: 20px;
             right: 20px;
-            width: 220px;
-            background: rgba(0,0,0,0.5);
-            border-radius: 12px;
-            padding: 15px;
-            border: 3px solid rgba(255,255,255,0.1);
-        }
-        #menu-leaderboard h3 {
-            color: #f8d850;
-            font-size: 16px;
-            text-align: center;
-            margin-bottom: 12px;
-            text-shadow: 0 2px 0 rgba(0,0,0,0.3);
-        }
-        .lb-entry {
-            display: flex;
-            justify-content: space-between;
-            padding: 6px 8px;
-            color: #fff;
-            font-size: 13px;
-            border-radius: 6px;
-        }
-        .lb-entry:nth-child(2) { background: rgba(255,215,0,0.3); }
-        .lb-entry:nth-child(3) { background: rgba(192,192,192,0.3); }
-        .lb-entry:nth-child(4) { background: rgba(205,127,50,0.3); }
-        .lb-rank { color: #f8d850; font-weight: 800; margin-right: 8px; }
-        .lb-name { flex: 1; }
-        .lb-score { color: #8f8; font-weight: 700; }
-
-        /* ==================== SHOP POPUP ==================== */
-        #shop-popup, #settings-popup, #changelog-popup {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 90%;
-            max-width: 500px;
-            max-height: 80vh;
-            background: linear-gradient(180deg, #4a6a3a 0%, #3a5a2a 100%);
-            border-radius: 16px;
-            border: 4px solid #2a4a1a;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-            z-index: 1001;
-            display: none;
-            flex-direction: column;
-            overflow: hidden;
-        }
-        .popup-header {
-            background: rgba(0,0,0,0.3);
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 3px solid rgba(0,0,0,0.2);
-        }
-        .popup-header h2 {
-            color: #f8d850;
-            font-family: 'Fredoka One', cursive;
-            font-size: 24px;
-            text-shadow: 0 2px 0 rgba(0,0,0,0.3);
-        }
-        .popup-close {
-            width: 36px; height: 36px;
-            background: #c94040;
-            border: none;
-            border-radius: 50%;
-            color: #fff;
-            font-size: 20px;
-            cursor: pointer;
-            box-shadow: 0 3px 0 #a03030;
-        }
-        .popup-close:active { transform: translateY(2px); box-shadow: 0 1px 0 #a03030; }
-
-        .popup-content {
-            padding: 20px;
-            overflow-y: auto;
-            flex: 1;
-        }
-
-        /* Shop Kategorileri */
-        .shop-tabs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-        .shop-tab {
-            padding: 10px 16px;
-            background: rgba(0,0,0,0.3);
-            border: 2px solid rgba(255,255,255,0.1);
-            border-radius: 8px;
-            color: #fff;
-            font-weight: 700;
-            cursor: pointer;
-            font-size: 13px;
-        }
-        .shop-tab.active {
-            background: #f8d850;
-            color: #333;
-            border-color: #d8b830;
-        }
-
-        /* Shop Items */
-        .shop-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 12px;
-        }
-        .shop-item {
-            background: rgba(0,0,0,0.3);
+            background: linear-gradient(180deg, rgba(45,90,63,0.92) 0%, rgba(26,71,42,0.95) 100%);
             border-radius: 12px;
             padding: 12px;
-            text-align: center;
-            cursor: pointer;
-            border: 3px solid transparent;
-            transition: all 0.15s;
+            min-width: 180px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,255,255,0.1);
         }
-        .shop-item:hover { border-color: #f8d850; transform: scale(1.05); }
-        .shop-item.owned { border-color: #4CAF50; }
-        .shop-item.selected { border-color: #f8d850; background: rgba(248,216,80,0.2); }
-        .shop-item-icon {
-            width: 60px; height: 60px;
-            margin: 0 auto 8px;
+
+        .leaderboard-title {
+            font-family: 'Lilita One', cursive;
+            font-size: 14px;
+            color: #ffc107;
+            margin-bottom: 8px;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            border-radius: 6px;
+            margin-bottom: 4px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .leaderboard-item:nth-child(2) { background: rgba(255,215,0,0.2); }
+        .leaderboard-item:nth-child(3) { background: rgba(192,192,192,0.2); }
+        .leaderboard-item:nth-child(4) { background: rgba(205,127,50,0.2); }
+
+        .leaderboard-rank {
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 30px;
-        }
-        .shop-item-name {
-            color: #fff;
-            font-size: 11px;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-        .shop-item-price {
-            color: #f8d850;
-            font-size: 12px;
+            font-size: 10px;
             font-weight: 800;
         }
-        .shop-item-price.owned { color: #4CAF50; }
 
-        /* Gold Display */
-        #shop-gold {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(0,0,0,0.4);
-            padding: 8px 16px;
-            border-radius: 20px;
-        }
-        #shop-gold-icon {
-            width: 24px; height: 24px;
-            background: #f8d850;
-            border-radius: 50%;
-            border: 3px solid #d8b830;
-        }
-        #shop-gold-amount {
-            color: #f8d850;
-            font-weight: 800;
-            font-size: 16px;
-        }
+        .rank-1 { background: linear-gradient(180deg, #ffd700 0%, #ffb300 100%); color: #000; }
+        .rank-2 { background: linear-gradient(180deg, #c0c0c0 0%, #a0a0a0 100%); color: #000; }
+        .rank-3 { background: linear-gradient(180deg, #cd7f32 0%, #a0522d 100%); color: #fff; }
+        .rank-default { background: rgba(255,255,255,0.15); }
 
-        /* ==================== OYUN UI ==================== */
-        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: none; }
-
-        /* Ust Barlar */
-        #top-bars { position: absolute; top: 15px; left: 15px; width: 280px; }
-        .bar-container { 
-            width: 100%; height: 26px; 
-            background: rgba(30,30,30,0.9); 
-            border: 3px solid #222; 
-            border-radius: 6px; 
-            overflow: hidden; 
-            margin-bottom: 6px; 
-            position: relative; 
-        }
-        #health-bar { width: 100%; height: 100%; background: linear-gradient(180deg, #e85a5a 0%, #c94040 100%); transition: width 0.15s; }
-        #xp-bar { width: 0%; height: 100%; background: linear-gradient(180deg, #f8a850 0%, #e89030 100%); transition: width 0.15s; }
-        .bar-text { 
-            position: absolute; top: 0; left: 0; width: 100%; 
-            text-align: center; color: white; font-size: 13px; 
-            font-weight: 800; line-height: 26px; 
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5); 
-        }
-
-        /* Kaynaklar */
-        #resources { 
-            position: absolute; top: 95px; left: 15px; 
-            background: rgba(30,30,30,0.9); 
-            padding: 12px 15px; border-radius: 10px; 
-            border: 3px solid #222; color: white; 
-            font-weight: 700; font-size: 14px; 
-        }
-        .res-item { display: flex; align-items: center; margin-bottom: 8px; }
-        .res-item:last-child { margin-bottom: 0; }
-        .res-icon { width: 20px; height: 20px; border-radius: 4px; margin-right: 10px; border: 2px solid rgba(0,0,0,0.3); }
-
-        /* Minimap */
-        #minimap-container { 
-            position: absolute; top: 15px; right: 15px; 
-            width: 150px; height: 150px; 
-            background: rgba(30,30,30,0.9); 
-            border: 3px solid #222; 
-            border-radius: 10px; 
+        .leaderboard-name {
+            flex: 1;
             overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
-        #minimap { width: 100%; height: 100%; }
 
-        /* Leaderboard (Oyun ici) */
-        #game-leaderboard {
-            position: absolute;
-            top: 180px;
-            right: 15px;
-            width: 180px;
-            background: rgba(30,30,30,0.85);
-            border-radius: 10px;
-            padding: 12px;
-            border: 3px solid #222;
+        .leaderboard-score {
+            color: #8bc34a;
+            font-weight: 800;
         }
-        #game-leaderboard h4 {
-            color: #f8d850;
-            font-size: 13px;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-        .game-lb-entry {
-            display: flex;
-            justify-content: space-between;
-            padding: 4px 6px;
-            color: #fff;
-            font-size: 11px;
-            border-radius: 4px;
-        }
-        .game-lb-entry.me { background: rgba(248,216,80,0.3); }
 
-        /* AGE Display */
-        #age-display {
+        /* Minimap - Bottom Right */
+        .minimap {
             position: absolute;
-            bottom: 220px;
+            bottom: 20px;
+            right: 20px;
+            width: 150px;
+            height: 150px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 12px;
+            border: 3px solid rgba(255,255,255,0.15);
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .minimap-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            background: 
+                linear-gradient(rgba(76,175,80,0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(76,175,80,0.1) 1px, transparent 1px);
+            background-size: 15px 15px;
+        }
+
+        .minimap-player {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #4caf50;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 8px rgba(76,175,80,0.8);
+        }
+
+        .minimap-enemy {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            background: #f44336;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Action Bar / Inventory - Bottom */
+        .action-bar {
+            position: absolute;
+            bottom: 90px;
             left: 50%;
             transform: translateX(-50%);
-            color: rgba(255,255,255,0.8);
-            font-size: 14px;
-            font-weight: 700;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            display: flex;
+            gap: 6px;
         }
 
-        /* Envanter */
-        #inventory { 
-            position: absolute; bottom: 140px; left: 50%; 
-            transform: translateX(-50%); 
-            display: flex; gap: 6px; 
-            pointer-events: auto;
-            background: rgba(30,30,30,0.7);
-            padding: 8px;
-            border-radius: 12px;
-            border: 3px solid #222;
-        }
-        .inv-slot { 
-            width: 56px; height: 56px; 
-            background: rgba(50,50,50,0.9); 
-            border: 3px solid #444; 
-            border-radius: 10px; 
-            display: flex; flex-direction: column; 
-            justify-content: center; align-items: center; 
-            cursor: pointer; transition: all 0.1s; 
+        .action-slot {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(180deg, rgba(45,90,63,0.95) 0%, rgba(26,71,42,0.98) 100%);
+            border-radius: 10px;
+            border: 3px solid rgba(255,255,255,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s;
             position: relative;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
-        .inv-slot.selected { 
-            border-color: #f8d850; 
-            background: rgba(248,216,80,0.2); 
-            box-shadow: 0 0 15px rgba(248,216,80,0.4); 
+
+        .action-slot:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255,255,255,0.3);
         }
-        .inv-slot canvas { width: 32px; height: 32px; }
-        .inv-slot-key { 
+
+        .action-slot.active {
+            border-color: #ffc107;
+            box-shadow: 0 0 15px rgba(255,193,7,0.4), 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .action-slot-icon {
+            width: 36px;
+            height: 36px;
+        }
+
+        .action-slot-key {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: rgba(0,0,0,0.7);
+            color: #ffc107;
+            font-size: 10px;
+            font-weight: 800;
+            padding: 3px 6px;
+            border-radius: 4px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .action-slot-count {
             position: absolute;
             bottom: 2px;
             right: 4px;
-            font-size: 10px; 
-            color: #888; 
+            font-size: 11px;
             font-weight: 800;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
         }
 
-        /* Yapi Menusü */
-        #build-menu { 
-            position: absolute; bottom: 140px; right: 20px; 
-            display: flex; flex-direction: column; gap: 6px; 
-            pointer-events: auto; 
-        }
-        .build-btn { 
-            width: 60px; height: 60px; 
-            background: rgba(50,50,50,0.9); 
-            border: 3px solid #444; 
-            border-radius: 10px; 
-            display: flex; flex-direction: column; 
-            justify-content: center; align-items: center; 
-            color: white; font-size: 8px; font-weight: 700; 
-            cursor: pointer; 
-        }
-        .build-btn:active { transform: scale(0.92); }
-        .build-btn canvas { width: 28px; height: 28px; margin-bottom: 2px; }
-        .build-cost { font-size: 8px; color: #aaa; }
-
-        /* Joystickler */
-        #left-joystick-area, #right-joystick-area { 
-            position: absolute; bottom: 20px; 
-            width: 130px; height: 130px; 
-            pointer-events: auto; 
-        }
-        #left-joystick-area { left: 20px; }
-        #right-joystick-area { right: 20px; }
-        .joystick-base { 
-            width: 100%; height: 100%; 
-            background: rgba(255,255,255,0.08); 
-            border: 4px solid rgba(255,255,255,0.15); 
-            border-radius: 50%; 
-            display: flex; justify-content: center; align-items: center; 
-        }
-        .joystick-stick { 
-            width: 55px; height: 55px; 
-            background: rgba(255,255,255,0.25); 
-            border: 3px solid rgba(255,255,255,0.4); 
-            border-radius: 50%; 
-            position: absolute; 
-        }
-        .joystick-label { 
-            position: absolute; bottom: -22px; left: 50%; 
-            transform: translateX(-50%); 
-            color: rgba(255,255,255,0.5); 
-            font-size: 10px; font-weight: 700; 
-        }
-
-        /* Olum Ekrani */
-        #death-screen {
+        /* Resource Counter - Top Left */
+        .resources {
             position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8);
+            top: 20px;
+            left: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .resource-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(180deg, rgba(45,90,63,0.92) 0%, rgba(26,71,42,0.95) 100%);
+            padding: 8px 14px;
+            border-radius: 20px;
+            border: 2px solid rgba(255,255,255,0.1);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+        }
+
+        .resource-icon {
+            width: 22px;
+            height: 22px;
+        }
+
+        .resource-count {
+            font-weight: 800;
+            font-size: 14px;
+            min-width: 40px;
+        }
+
+        .resource-count.wood { color: #a1887f; }
+        .resource-count.stone { color: #90a4ae; }
+        .resource-count.gold { color: #ffd54f; }
+
+        /* Kill Feed - Top Center-Left */
+        .kill-feed {
+            position: absolute;
+            top: 80px;
+            left: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-width: 280px;
+        }
+
+        .kill-item {
+            background: rgba(0,0,0,0.6);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            animation: killFadeIn 0.3s ease;
+            border-left: 3px solid #f44336;
+        }
+
+        @keyframes killFadeIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .kill-item .killer { color: #ef5350; }
+        .kill-item .victim { color: #90a4ae; }
+
+        /* Mobile Controls */
+        .mobile-controls {
+            display: none;
+        }
+
+        /* Chat */
+        .chat-container {
+            position: absolute;
+            bottom: 160px;
+            left: 20px;
+            width: 280px;
+        }
+
+        .chat-messages {
+            max-height: 120px;
+            overflow-y: auto;
+            margin-bottom: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .chat-msg {
+            background: rgba(0,0,0,0.5);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            word-break: break-word;
+        }
+
+        .chat-msg .name {
+            color: #4caf50;
+            font-weight: 700;
+        }
+
+        .chat-input {
+            width: 100%;
+            padding: 10px 14px;
+            background: rgba(0,0,0,0.6);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: #fff;
+            font-family: 'Nunito', sans-serif;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .chat-input:focus {
+            border-color: #4caf50;
+        }
+
+        .chat-input::placeholder {
+            color: rgba(255,255,255,0.4);
+        }
+
+        /* Upgrade Menu */
+        .upgrade-menu {
+            position: absolute;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+            gap: 8px;
+            animation: upgradeSlide 0.3s ease;
+        }
+
+        .upgrade-menu.active {
+            display: flex;
+        }
+
+        @keyframes upgradeSlide {
+            from { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        .upgrade-item {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(180deg, rgba(45,90,63,0.95) 0%, rgba(26,71,42,0.98) 100%);
+            border-radius: 12px;
+            border: 3px solid #ffc107;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s;
+            box-shadow: 0 0 15px rgba(255,193,7,0.3);
+        }
+
+        .upgrade-item:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 25px rgba(255,193,7,0.5);
+        }
+
+        .upgrade-item img {
+            width: 40px;
+            height: 40px;
+        }
+
+        /* Clan Tag */
+        .clan-tag {
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.5);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #81c784;
+            border: 1px solid rgba(129,199,132,0.3);
+        }
+
+        /* Death Screen */
+        .death-screen {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
             display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 100;
+            gap: 20px;
+            z-index: 500;
         }
-        #death-screen h1 {
-            font-family: 'Fredoka One', cursive;
+
+        .death-screen.active {
+            display: flex;
+        }
+
+        .death-title {
+            font-family: 'Lilita One', cursive;
             font-size: 48px;
-            color: #e85a5a;
-            text-shadow: 0 4px 0 #a03030;
-            margin-bottom: 20px;
+            color: #f44336;
+            text-shadow: 0 4px 0 #c62828;
         }
-        #death-stats {
-            background: rgba(255,255,255,0.1);
-            padding: 20px 40px;
-            border-radius: 12px;
-            margin-bottom: 30px;
+
+        .death-stats {
+            display: flex;
+            gap: 30px;
+            margin: 20px 0;
+        }
+
+        .death-stat {
             text-align: center;
         }
-        #death-stats p {
-            color: #fff;
-            font-size: 18px;
-            margin: 8px 0;
+
+        .death-stat-value {
+            font-family: 'Lilita One', cursive;
+            font-size: 36px;
+            color: #ffc107;
         }
-        #death-stats span { color: #f8d850; font-weight: 800; }
-        #respawn-btn {
-            padding: 15px 50px;
-            font-size: 20px;
-            font-family: 'Fredoka One', cursive;
+
+        .death-stat-label {
+            font-size: 14px;
+            color: rgba(255,255,255,0.6);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .respawn-btn {
+            padding: 16px 40px;
+            font-family: 'Lilita One', cursive;
+            font-size: 24px;
             color: #fff;
-            background: linear-gradient(180deg, #4CAF50 0%, #388E3C 100%);
+            background: linear-gradient(180deg, #4caf50 0%, #388e3c 100%);
             border: none;
-            border-radius: 10px;
+            border-radius: 12px;
             cursor: pointer;
-            box-shadow: 0 4px 0 #2E7D32;
+            box-shadow: 0 5px 0 #2e7d32;
+            transition: all 0.15s;
         }
-        #respawn-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #2E7D32; }
+
+        .respawn-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* ==================== RESPONSIVE ==================== */
+        @media (max-width: 768px) {
+            .leaderboard {
+                top: auto;
+                bottom: 180px;
+                right: 10px;
+                min-width: 140px;
+                padding: 10px;
+            }
+
+            .leaderboard-title { font-size: 12px; }
+            .leaderboard-item { font-size: 11px; padding: 4px 6px; }
+
+            .minimap {
+                width: 100px;
+                height: 100px;
+                bottom: 180px;
+            }
+
+            .stats-bar {
+                width: 260px;
+                bottom: 15px;
+            }
+
+            .stat-icon { width: 24px; height: 24px; font-size: 12px; }
+            .stat-bar-outer { height: 18px; }
+
+            .action-bar {
+                bottom: 75px;
+            }
+
+            .action-slot {
+                width: 48px;
+                height: 48px;
+            }
+
+            .action-slot-icon {
+                width: 30px;
+                height: 30px;
+            }
+
+            .resources {
+                top: 15px;
+                left: 15px;
+            }
+
+            .resource-item {
+                padding: 6px 10px;
+            }
+
+            .resource-icon { width: 18px; height: 18px; }
+            .resource-count { font-size: 12px; }
+
+            .age-badge {
+                font-size: 14px;
+                padding: 6px 14px;
+            }
+
+            .chat-container {
+                width: 220px;
+                bottom: 140px;
+                left: 15px;
+            }
+
+            .kill-feed {
+                top: 70px;
+                left: 15px;
+                max-width: 200px;
+            }
+
+            .kill-item {
+                font-size: 10px;
+                padding: 6px 10px;
+            }
+
+            /* Show mobile joystick */
+            .mobile-controls {
+                display: block;
+            }
+
+            .joystick-zone {
+                position: absolute;
+                bottom: 80px;
+                left: 30px;
+                width: 120px;
+                height: 120px;
+            }
+
+            .joystick-base {
+                width: 100%;
+                height: 100%;
+                background: rgba(255,255,255,0.1);
+                border: 3px solid rgba(255,255,255,0.2);
+                border-radius: 50%;
+                position: relative;
+            }
+
+            .joystick-stick {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 50px;
+                height: 50px;
+                background: rgba(255,255,255,0.3);
+                border-radius: 50%;
+                border: 2px solid rgba(255,255,255,0.4);
+            }
+
+            .attack-btn {
+                position: absolute;
+                bottom: 100px;
+                right: 30px;
+                width: 80px;
+                height: 80px;
+                background: linear-gradient(180deg, rgba(244,67,54,0.8) 0%, rgba(198,40,40,0.8) 100%);
+                border: 4px solid rgba(255,255,255,0.3);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            }
+
+            .attack-btn svg {
+                width: 40px;
+                height: 40px;
+                fill: #fff;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .leaderboard {
+                display: none;
+            }
+
+            .minimap {
+                width: 80px;
+                height: 80px;
+                bottom: 160px;
+                right: 10px;
+            }
+
+            .stats-bar {
+                width: 200px;
+            }
+
+            .action-slot {
+                width: 42px;
+                height: 42px;
+            }
+
+            .action-slot-icon {
+                width: 26px;
+                height: 26px;
+            }
+
+            .action-slot-key {
+                display: none;
+            }
+
+            .chat-container {
+                display: none;
+            }
+
+            .resources {
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+
+            .resource-item {
+                padding: 4px 8px;
+            }
+
+            .kill-feed {
+                display: none;
+            }
+
+            .age-badge {
+                top: 12px;
+                font-size: 12px;
+                padding: 5px 12px;
+            }
+        }
+
+        /* Landscape mobile */
+        @media (max-height: 500px) and (orientation: landscape) {
+            .stats-bar {
+                bottom: 10px;
+                width: 220px;
+            }
+
+            .stat-bar-outer { height: 16px; }
+            .stat-icon { width: 20px; height: 20px; }
+
+            .action-bar {
+                bottom: 50px;
+            }
+
+            .action-slot {
+                width: 40px;
+                height: 40px;
+            }
+
+            .minimap {
+                width: 80px;
+                height: 80px;
+                bottom: 10px;
+            }
+
+            .resources {
+                top: 10px;
+            }
+
+            .age-badge {
+                top: 10px;
+            }
+        }
     </style>
 </head>
 <body>
-    <!-- ==================== GIRIS MENUSU ==================== -->
-    <div id="main-menu">
-        <div id="menu-bg-pattern"></div>
-        
-        <div id="menu-leaderboard">
-            <h3>LEADERBOARD</h3>
-            <div class="lb-entry"><span class="lb-rank">1.</span><span class="lb-name">ProPlayer</span><span class="lb-score">1.2M</span></div>
-            <div class="lb-entry"><span class="lb-rank">2.</span><span class="lb-name">GameMaster</span><span class="lb-score">890K</span></div>
-            <div class="lb-entry"><span class="lb-rank">3.</span><span class="lb-name">Destroyer</span><span class="lb-score">654K</span></div>
-            <div class="lb-entry"><span class="lb-rank">4.</span><span class="lb-name">Builder123</span><span class="lb-score">432K</span></div>
-            <div class="lb-entry"><span class="lb-rank">5.</span><span class="lb-name">Survivor</span><span class="lb-score">321K</span></div>
-            <div class="lb-entry"><span class="lb-rank">6.</span><span class="lb-name">Hunter</span><span class="lb-score">210K</span></div>
-            <div class="lb-entry"><span class="lb-rank">7.</span><span class="lb-name">Ninja</span><span class="lb-score">180K</span></div>
-            <div class="lb-entry"><span class="lb-rank">8.</span><span class="lb-name">Legend</span><span class="lb-score">150K</span></div>
+    <!-- MENU SCREEN -->
+    <div id="menuScreen">
+        <div class="menu-bg" id="menuBg"></div>
+        <div class="menu-content">
+            <h1 class="game-title">VORTEX<span class="io">.io</span></h1>
+            <div class="menu-panel">
+                <input type="text" class="nick-input" id="nickInput" placeholder="Enter nickname" maxlength="16">
+                <button class="play-btn" id="playBtn">PLAY</button>
+            </div>
         </div>
-
-        <h1 id="game-logo">Sploop<span>.io</span></h1>
-        <p id="menu-subtitle">Craft, Build, Survive!</p>
-        
-        <div id="name-input-container">
-            <input type="text" id="player-name-input" placeholder="Enter your name..." maxlength="16">
-        </div>
-        
-        <button id="play-btn">PLAY</button>
-        
-        <div id="menu-buttons">
-            <button class="menu-btn" id="shop-btn">SHOP</button>
-            <button class="menu-btn" id="settings-btn">SETTINGS</button>
-            <button class="menu-btn" id="changelog-btn">CHANGELOG</button>
+        <div class="online-badge">
+            <div class="online-dot"></div>
+            <span id="onlineCount">8,432</span> Online
         </div>
     </div>
 
-    <!-- ==================== SHOP POPUP ==================== -->
-    <div id="shop-popup">
-        <div class="popup-header">
-            <h2>SHOP</h2>
-            <div id="shop-gold">
-                <div id="shop-gold-icon"></div>
-                <span id="shop-gold-amount">0</span>
-            </div>
-            <button class="popup-close" id="shop-close">&times;</button>
-        </div>
-        <div class="popup-content">
-            <div class="shop-tabs">
-                <button class="shop-tab active" data-tab="hats">HATS</button>
-                <button class="shop-tab" data-tab="accessories">ACCESSORIES</button>
-                <button class="shop-tab" data-tab="skins">SKINS</button>
-                <button class="shop-tab" data-tab="trails">TRAILS</button>
-            </div>
-            <div class="shop-grid" id="shop-items">
-                <!-- Items will be generated by JS -->
-            </div>
-        </div>
-    </div>
-
-    <!-- ==================== SETTINGS POPUP ==================== -->
-    <div id="settings-popup">
-        <div class="popup-header">
-            <h2>SETTINGS</h2>
-            <button class="popup-close" id="settings-close">&times;</button>
-        </div>
-        <div class="popup-content">
-            <div style="color: #fff;">
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 700;">Music Volume</label>
-                    <input type="range" min="0" max="100" value="50" style="width: 100%;">
-                </div>
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 700;">Sound Effects</label>
-                    <input type="range" min="0" max="100" value="80" style="width: 100%;">
-                </div>
-                <div style="margin-bottom: 20px;">
-                    <label style="display: flex; align-items: center; gap: 10px; font-weight: 700; cursor: pointer;">
-                        <input type="checkbox" checked style="width: 20px; height: 20px;">
-                        Show Player Names
-                    </label>
-                </div>
-                <div style="margin-bottom: 20px;">
-                    <label style="display: flex; align-items: center; gap: 10px; font-weight: 700; cursor: pointer;">
-                        <input type="checkbox" checked style="width: 20px; height: 20px;">
-                        Show Health Bars
-                    </label>
-                </div>
-                <div style="margin-bottom: 20px;">
-                    <label style="display: flex; align-items: center; gap: 10px; font-weight: 700; cursor: pointer;">
-                        <input type="checkbox" style="width: 20px; height: 20px;">
-                        Low Graphics Mode
-                    </label>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ==================== CHANGELOG POPUP ==================== -->
-    <div id="changelog-popup">
-        <div class="popup-header">
-            <h2>CHANGELOG</h2>
-            <button class="popup-close" id="changelog-close">&times;</button>
-        </div>
-        <div class="popup-content">
-            <div style="color: #fff;">
-                <div style="margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px;">
-                    <h3 style="color: #f8d850; margin-bottom: 10px;">v1.2.0 - New Update!</h3>
-                    <ul style="margin-left: 20px; line-height: 1.8;">
-                        <li>Added new Turret building</li>
-                        <li>Added Windmill for passive wood</li>
-                        <li>New Wolf mob - aggressive!</li>
-                        <li>Improved combat system</li>
-                        <li>Bug fixes and optimizations</li>
-                    </ul>
-                </div>
-                <div style="margin-bottom: 20px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px;">
-                    <h3 style="color: #aaa; margin-bottom: 10px;">v1.1.0</h3>
-                    <ul style="margin-left: 20px; line-height: 1.8;">
-                        <li>Added Shop system</li>
-                        <li>New hats and accessories</li>
-                        <li>Leaderboard improvements</li>
-                    </ul>
-                </div>
-                <div style="padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px;">
-                    <h3 style="color: #aaa; margin-bottom: 10px;">v1.0.0</h3>
-                    <ul style="margin-left: 20px; line-height: 1.8;">
-                        <li>Initial release</li>
-                        <li>Basic gameplay mechanics</li>
-                        <li>Resource gathering</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ==================== OYUN CANVAS ==================== -->
+    <!-- GAME CANVAS -->
     <canvas id="gameCanvas"></canvas>
 
-    <!-- ==================== OYUN UI ==================== -->
-    <div id="ui-layer">
-        <div id="top-bars">
-            <div class="bar-container">
-                <div id="health-bar"></div>
-                <div class="bar-text" id="hp-text">100 / 100</div>
+    <!-- GAME UI -->
+    <div id="gameUI">
+        <!-- Age Badge -->
+        <div class="age-badge">
+            Age: <span id="ageValue">1</span>
+        </div>
+
+        <!-- Resources -->
+        <div class="resources">
+            <div class="resource-item">
+                <svg class="resource-icon" viewBox="0 0 24 24" fill="#8d6e63"><path d="M12 2L4 7v10l8 5 8-5V7l-8-5zm0 2.5L18 8v8l-6 3.5L6 16V8l6-3.5z"/><path d="M12 6v12M8 8v8M16 8v8" stroke="#a1887f" stroke-width="1.5"/></svg>
+                <span class="resource-count wood" id="woodCount">0</span>
             </div>
-            <div class="bar-container">
-                <div id="xp-bar"></div>
-                <div class="bar-text" id="lvl-text">Seviye 1</div>
+            <div class="resource-item">
+                <svg class="resource-icon" viewBox="0 0 24 24" fill="#78909c"><circle cx="12" cy="12" r="8"/><circle cx="10" cy="10" r="2" fill="#90a4ae"/><circle cx="14" cy="14" r="1.5" fill="#607d8b"/></svg>
+                <span class="resource-count stone" id="stoneCount">0</span>
+            </div>
+            <div class="resource-item">
+                <svg class="resource-icon" viewBox="0 0 24 24" fill="#ffc107"><polygon points="12,2 15,9 22,9 16.5,14 18.5,22 12,17 5.5,22 7.5,14 2,9 9,9"/></svg>
+                <span class="resource-count gold" id="goldCount">0</span>
             </div>
         </div>
 
-        <div id="resources">
-            <div class="res-item"><div class="res-icon" style="background:#c9a56c;"></div>Odun: <span id="wood-count">0</span></div>
-            <div class="res-item"><div class="res-icon" style="background:#7a7a8c;"></div>Tas: <span id="stone-count">0</span></div>
-            <div class="res-item"><div class="res-icon" style="background:#f5d547;"></div>Altin: <span id="gold-count">0</span></div>
-            <div class="res-item"><div class="res-icon" style="background:#e74c3c;"></div>Yemek: <span id="food-count">0</span></div>
-        </div>
-
-        <div id="minimap-container"><canvas id="minimap"></canvas></div>
-
-        <div id="game-leaderboard">
-            <h4>LEADERBOARD</h4>
-            <div id="game-lb-list"></div>
-        </div>
-
-        <div id="age-display">AGE 0</div>
-
-        <div id="inventory">
-            <div class="inv-slot selected" data-item="sword"><canvas id="inv-sword"></canvas><span class="inv-slot-key">1</span></div>
-            <div class="inv-slot" data-item="pickaxe"><canvas id="inv-pickaxe"></canvas><span class="inv-slot-key">2</span></div>
-            <div class="inv-slot" data-item="hammer"><canvas id="inv-hammer"></canvas><span class="inv-slot-key">3</span></div>
-            <div class="inv-slot" data-item="food"><canvas id="inv-food"></canvas><span class="inv-slot-key">4</span></div>
-        </div>
-
-        <div id="build-menu">
-            <div class="build-btn" data-build="wall"><canvas id="build-wall"></canvas>DUVAR<span class="build-cost">10 5</span></div>
-            <div class="build-btn" data-build="spike"><canvas id="build-spike"></canvas>DIKEN<span class="build-cost">20 5</span></div>
-            <div class="build-btn" data-build="windmill"><canvas id="build-windmill"></canvas>DEGIRMEN<span class="build-cost">50 10</span></div>
-            <div class="build-btn" data-build="turret"><canvas id="build-turret"></canvas>KULE<span class="build-cost">30 30</span></div>
-        </div>
-
-        <div id="left-joystick-area">
-            <div class="joystick-base">
-                <div class="joystick-stick" id="left-stick"></div>
+        <!-- Leaderboard -->
+        <div class="leaderboard">
+            <div class="leaderboard-title">LEADERBOARD</div>
+            <div class="leaderboard-item">
+                <div class="leaderboard-rank rank-1">1</div>
+                <div class="leaderboard-name">xXProPlayerXx</div>
+                <div class="leaderboard-score">15420</div>
             </div>
-            <span class="joystick-label">HAREKET</span>
+            <div class="leaderboard-item">
+                <div class="leaderboard-rank rank-2">2</div>
+                <div class="leaderboard-name">Destroyer99</div>
+                <div class="leaderboard-score">12350</div>
+            </div>
+            <div class="leaderboard-item">
+                <div class="leaderboard-rank rank-3">3</div>
+                <div class="leaderboard-name">NightHawk</div>
+                <div class="leaderboard-score">9870</div>
+            </div>
+            <div class="leaderboard-item">
+                <div class="leaderboard-rank rank-default">4</div>
+                <div class="leaderboard-name">ShadowKing</div>
+                <div class="leaderboard-score">7650</div>
+            </div>
+            <div class="leaderboard-item">
+                <div class="leaderboard-rank rank-default">5</div>
+                <div class="leaderboard-name">You</div>
+                <div class="leaderboard-score" id="playerScore">0</div>
+            </div>
         </div>
 
-        <div id="right-joystick-area">
-            <div class="joystick-base">
-                <div class="joystick-stick" id="right-stick"></div>
+        <!-- Kill Feed -->
+        <div class="kill-feed" id="killFeed"></div>
+
+        <!-- Minimap -->
+        <div class="minimap">
+            <div class="minimap-inner">
+                <div class="minimap-player" id="minimapPlayer" style="left:50%;top:50%"></div>
             </div>
-            <span class="joystick-label">SALDIRI</span>
+        </div>
+
+        <!-- Action Bar (Inventory) -->
+        <div class="action-bar" id="actionBar">
+            <div class="action-slot active" data-slot="0">
+                <svg class="action-slot-icon" viewBox="0 0 24 24">
+                    <path fill="#8d6e63" d="M4 20h2v-8l6-4 6 4v8h2v-9l-8-6-8 6v9z"/>
+                    <path fill="#a1887f" d="M6 12h12v8H6z"/>
+                    <circle cx="8" cy="10" r="1.5" fill="#607d8b"/>
+                </svg>
+                <span class="action-slot-key">1</span>
+            </div>
+            <div class="action-slot" data-slot="1">
+                <svg class="action-slot-icon" viewBox="0 0 24 24">
+                    <path fill="#f44336" d="M12 2L8 8H4l8 14 8-14h-4L12 2z"/>
+                    <path fill="#e53935" d="M12 4l3 5h3l-6 10-6-10h3l3-5z"/>
+                </svg>
+                <span class="action-slot-key">2</span>
+            </div>
+            <div class="action-slot" data-slot="2">
+                <svg class="action-slot-icon" viewBox="0 0 24 24">
+                    <rect x="4" y="8" width="16" height="12" rx="2" fill="#78909c"/>
+                    <rect x="6" y="10" width="12" height="8" fill="#546e7a"/>
+                    <circle cx="12" cy="14" r="2" fill="#90a4ae"/>
+                </svg>
+                <span class="action-slot-key">3</span>
+                <span class="action-slot-count">5</span>
+            </div>
+            <div class="action-slot" data-slot="3">
+                <svg class="action-slot-icon" viewBox="0 0 24 24">
+                    <polygon points="12,2 14,10 22,10 16,15 18,22 12,18 6,22 8,15 2,10 10,10" fill="#ffc107"/>
+                    <polygon points="12,6 13,10 17,10 14,13 15,17 12,15 9,17 10,13 7,10 11,10" fill="#ffeb3b"/>
+                </svg>
+                <span class="action-slot-key">4</span>
+            </div>
+            <div class="action-slot" data-slot="4">
+                <svg class="action-slot-icon" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10" fill="#4caf50"/>
+                    <path d="M12 7v10M7 12h10" stroke="#81c784" stroke-width="3"/>
+                </svg>
+                <span class="action-slot-key">5</span>
+                <span class="action-slot-count">10</span>
+            </div>
+            <div class="action-slot" data-slot="5">
+                <svg class="action-slot-icon" viewBox="0 0 24 24">
+                    <rect x="3" y="6" width="18" height="14" rx="2" fill="#ff9800"/>
+                    <rect x="5" y="8" width="14" height="10" fill="#ffb74d"/>
+                    <path d="M8 13h8M8 16h5" stroke="#fff" stroke-width="1.5"/>
+                </svg>
+                <span class="action-slot-key">6</span>
+            </div>
+            <div class="action-slot" data-slot="6">
+                <svg class="action-slot-icon" viewBox="0 0 24 24">
+                    <path fill="#795548" d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7z"/>
+                    <circle cx="12" cy="9" r="3" fill="#a1887f"/>
+                </svg>
+                <span class="action-slot-key">7</span>
+            </div>
+            <div class="action-slot" data-slot="7">
+                <svg class="action-slot-icon" viewBox="0 0 24 24">
+                    <path fill="#607d8b" d="M4 4h16l-2 14H6L4 4z"/>
+                    <ellipse cx="12" cy="4" rx="8" ry="2" fill="#78909c"/>
+                    <rect x="8" y="10" width="2" height="4" fill="#90a4ae"/>
+                    <rect x="14" y="10" width="2" height="4" fill="#90a4ae"/>
+                </svg>
+                <span class="action-slot-key">8</span>
+            </div>
+        </div>
+
+        <!-- Stats Bar -->
+        <div class="stats-bar">
+            <div class="stat-row">
+                <div class="stat-icon health">&#10084;</div>
+                <div class="stat-bar-outer">
+                    <div class="stat-bar-inner health" id="healthBar" style="width:100%">
+                        <span class="stat-value" id="healthValue">100/100</span>
+                    </div>
+                </div>
+            </div>
+            <div class="stat-row">
+                <div class="stat-icon food">&#127860;</div>
+                <div class="stat-bar-outer">
+                    <div class="stat-bar-inner food" id="foodBar" style="width:100%">
+                        <span class="stat-value" id="foodValue">100/100</span>
+                    </div>
+                </div>
+            </div>
+            <div class="stat-row">
+                <div class="stat-icon xp">&#9733;</div>
+                <div class="stat-bar-outer">
+                    <div class="stat-bar-inner xp" id="xpBar" style="width:0%">
+                        <span class="stat-value" id="xpValue">0/100</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat -->
+        <div class="chat-container">
+            <div class="chat-messages" id="chatMessages"></div>
+            <input type="text" class="chat-input" id="chatInput" placeholder="Press Enter to chat...">
+        </div>
+
+        <!-- Upgrade Menu -->
+        <div class="upgrade-menu" id="upgradeMenu">
+            <div class="upgrade-item" title="Better Axe">
+                <svg viewBox="0 0 24 24" width="40" height="40">
+                    <path fill="#8d6e63" d="M4 20L14 10"/>
+                    <path fill="#607d8b" d="M12 4l8 6-4 4-6-8z"/>
+                </svg>
+            </div>
+            <div class="upgrade-item" title="Sword">
+                <svg viewBox="0 0 24 24" width="40" height="40">
+                    <path fill="#78909c" d="M6 18L18 6"/>
+                    <path fill="#90a4ae" d="M16 4l4 4-12 12-4-4z"/>
+                </svg>
+            </div>
+            <div class="upgrade-item" title="Shield">
+                <svg viewBox="0 0 24 24" width="40" height="40">
+                    <path fill="#5c6bc0" d="M12 2L4 6v6c0 5.5 3.8 10 8 11 4.2-1 8-5.5 8-11V6l-8-4z"/>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Mobile Controls -->
+        <div class="mobile-controls">
+            <div class="joystick-zone">
+                <div class="joystick-base">
+                    <div class="joystick-stick" id="joystickStick"></div>
+                </div>
+            </div>
+            <div class="attack-btn" id="attackBtn">
+                <svg viewBox="0 0 24 24"><path d="M6 18L18 6M16 4l4 4-12 12-4-4z"/></svg>
+            </div>
         </div>
     </div>
 
-    <!-- ==================== OLUM EKRANI ==================== -->
-    <div id="death-screen">
-        <h1>YOU DIED!</h1>
-        <div id="death-stats">
-            <p>Score: <span id="death-score">0</span></p>
-            <p>Kills: <span id="death-kills">0</span></p>
-            <p>Age: <span id="death-age">0</span></p>
+    <!-- Death Screen -->
+    <div class="death-screen" id="deathScreen">
+        <div class="death-title">YOU DIED</div>
+        <div class="death-stats">
+            <div class="death-stat">
+                <div class="death-stat-value" id="deathScore">0</div>
+                <div class="death-stat-label">Score</div>
+            </div>
+            <div class="death-stat">
+                <div class="death-stat-value" id="deathKills">0</div>
+                <div class="death-stat-label">Kills</div>
+            </div>
+            <div class="death-stat">
+                <div class="death-stat-value" id="deathAge">1</div>
+                <div class="death-stat-label">Age</div>
+            </div>
         </div>
-        <button id="respawn-btn">RESPAWN</button>
+        <button class="respawn-btn" id="respawnBtn">RESPAWN</button>
     </div>
 
-<script>
-// ==========================================
-// OYUN DEGISKENLERI
-// ==========================================
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-const mctx = document.getElementById('minimap').getContext('2d');
+    <script>
+        // ==================== GAME ENGINE ====================
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Game State
+        const game = {
+            running: false,
+            width: 0,
+            height: 0,
+            worldSize: 3000,
+            camera: { x: 0, y: 0 },
+            player: null,
+            entities: [],
+            resources: [],
+            buildings: [],
+            mobs: [],
+            particles: []
+        };
 
-let gameStarted = false;
-let playerName = 'Player';
-let shopGold = 500;
-let ownedItems = ['default_hat'];
-let selectedHat = 'default_hat';
-let kills = 0;
-let age = 0;
-let ageTimer = 0;
+        // Player
+        class Player {
+            constructor(name) {
+                this.name = name;
+                this.x = game.worldSize / 2;
+                this.y = game.worldSize / 2;
+                this.radius = 35;
+                this.speed = 3;
+                this.angle = 0;
+                this.health = 100;
+                this.maxHealth = 100;
+                this.food = 100;
+                this.maxFood = 100;
+                this.xp = 0;
+                this.xpNeeded = 100;
+                this.age = 1;
+                this.score = 0;
+                this.kills = 0;
+                this.wood = 0;
+                this.stone = 0;
+                this.gold = 0;
+                this.selectedSlot = 0;
+                this.attacking = false;
+                this.attackAngle = 0;
+                this.attackTimer = 0;
+            }
 
-function resize() { 
-    canvas.width = window.innerWidth; 
-    canvas.height = window.innerHeight; 
-}
-window.addEventListener('resize', resize); 
-resize();
+            update(keys, mouseAngle) {
+                // Movement
+                let dx = 0, dy = 0;
+                if (keys.w || keys.arrowup) dy -= 1;
+                if (keys.s || keys.arrowdown) dy += 1;
+                if (keys.a || keys.arrowleft) dx -= 1;
+                if (keys.d || keys.arrowright) dx += 1;
 
-const world = { width: 4000, height: 4000 };
-const camera = { x: 0, y: 0 };
+                if (dx !== 0 || dy !== 0) {
+                    const len = Math.sqrt(dx*dx + dy*dy);
+                    this.x += (dx/len) * this.speed;
+                    this.y += (dy/len) * this.speed;
+                }
 
-const player = {
-    x: world.width / 2, y: world.height / 2, radius: 32,
-    speed: 5, vx: 0, vy: 0, angle: 0,
-    hp: 100, maxHp: 100, xp: 0, maxXp: 50, level: 1,
-    wood: 0, stone: 0, gold: 0, food: 5,
-    damage: 15, selectedItem: 'sword',
-    attackCooldown: 0, maxAttackCooldown: 20,
-    isAttacking: false, attackAngle: 0, attackProgress: 0,
-    dashCooldown: 0, maxDashCooldown: 90
-};
+                // Clamp to world
+                this.x = Math.max(this.radius, Math.min(game.worldSize - this.radius, this.x));
+                this.y = Math.max(this.radius, Math.min(game.worldSize - this.radius, this.y));
 
-const entities = [];
-const particles = [];
-const floatingTexts = [];
-const projectiles = [];
-const bots = [];
+                this.angle = mouseAngle;
 
-// Shop Items
-const shopItems = {
-    hats: [
-        { id: 'default_hat', name: 'Default', price: 0, color: '#888' },
-        { id: 'viking', name: 'Viking', price: 100, color: '#8B4513' },
-        { id: 'crown', name: 'Crown', price: 500, color: '#FFD700' },
-        { id: 'ninja', name: 'Ninja', price: 200, color: '#1a1a1a' },
-        { id: 'wizard', name: 'Wizard', price: 300, color: '#6A5ACD' },
-        { id: 'cowboy', name: 'Cowboy', price: 250, color: '#CD853F' },
-        { id: 'pirate', name: 'Pirate', price: 400, color: '#2F4F4F' },
-        { id: 'samurai', name: 'Samurai', price: 600, color: '#B22222' },
-    ],
-    accessories: [
-        { id: 'none_acc', name: 'None', price: 0, color: '#888' },
-        { id: 'cape', name: 'Cape', price: 150, color: '#DC143C' },
-        { id: 'wings', name: 'Wings', price: 800, color: '#87CEEB' },
-        { id: 'scarf', name: 'Scarf', price: 100, color: '#228B22' },
-    ],
-    skins: [
-        { id: 'default_skin', name: 'Default', price: 0, color: '#e8d4b8' },
-        { id: 'blue', name: 'Blue', price: 200, color: '#4169E1' },
-        { id: 'red', name: 'Red', price: 200, color: '#DC143C' },
-        { id: 'green', name: 'Green', price: 200, color: '#228B22' },
-        { id: 'gold', name: 'Gold', price: 1000, color: '#FFD700' },
-    ],
-    trails: [
-        { id: 'none_trail', name: 'None', price: 0, color: '#888' },
-        { id: 'fire', name: 'Fire', price: 300, color: '#FF4500' },
-        { id: 'ice', name: 'Ice', price: 300, color: '#00BFFF' },
-        { id: 'rainbow', name: 'Rainbow', price: 500, color: 'linear-gradient(90deg, red, orange, yellow, green, blue, purple)' },
-    ]
-};
+                // Attack timer
+                if (this.attackTimer > 0) this.attackTimer--;
 
-let currentShopTab = 'hats';
+                // Food drain
+                if (Math.random() < 0.005) {
+                    this.food = Math.max(0, this.food - 1);
+                    if (this.food === 0) {
+                        this.health = Math.max(0, this.health - 1);
+                    }
+                }
 
-// ==========================================
-// MENU SISTEMI
-// ==========================================
-const mainMenu = document.getElementById('main-menu');
-const uiLayer = document.getElementById('ui-layer');
-const playBtn = document.getElementById('play-btn');
-const shopBtn = document.getElementById('shop-btn');
-const settingsBtn = document.getElementById('settings-btn');
-const changelogBtn = document.getElementById('changelog-btn');
-const shopPopup = document.getElementById('shop-popup');
-const settingsPopup = document.getElementById('settings-popup');
-const changelogPopup = document.getElementById('changelog-popup');
-const deathScreen = document.getElementById('death-screen');
-const respawnBtn = document.getElementById('respawn-btn');
+                // XP gain (demo)
+                if (Math.random() < 0.02) {
+                    this.xp += 1;
+                    this.score += 10;
+                    if (this.xp >= this.xpNeeded) {
+                        this.age++;
+                        this.xp = 0;
+                        this.xpNeeded = Math.floor(this.xpNeeded * 1.5);
+                        document.getElementById('upgradeMenu').classList.add('active');
+                        setTimeout(() => document.getElementById('upgradeMenu').classList.remove('active'), 5000);
+                    }
+                }
+            }
 
-// Play butonu
-playBtn.addEventListener('click', startGame);
-playBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startGame(); });
+            attack() {
+                if (this.attackTimer > 0) return;
+                this.attacking = true;
+                this.attackAngle = this.angle;
+                this.attackTimer = 30;
 
-function startGame() {
-    playerName = document.getElementById('player-name-input').value || 'Player#' + Math.floor(Math.random() * 999);
-    mainMenu.style.display = 'none';
-    uiLayer.style.display = 'block';
-    gameStarted = true;
-    resetPlayer();
-    if (entities.length === 0) spawnEntities();
-    spawnBots();
-    drawInventoryIcons();
-    gameLoop();
-}
+                // Check hits on resources
+                game.resources.forEach(res => {
+                    const dist = Math.sqrt((res.x - this.x)**2 + (res.y - this.y)**2);
+                    if (dist < this.radius + res.radius + 50) {
+                        const angleTo = Math.atan2(res.y - this.y, res.x - this.x);
+                        const angleDiff = Math.abs(angleTo - this.angle);
+                        if (angleDiff < 0.8 || angleDiff > Math.PI * 2 - 0.8) {
+                            res.health -= 10;
+                            if (res.type === 'tree') this.wood += 5;
+                            else if (res.type === 'stone') this.stone += 3;
+                            else if (res.type === 'gold') this.gold += 1;
+                            
+                            // Particles
+                            for (let i = 0; i < 5; i++) {
+                                game.particles.push({
+                                    x: res.x,
+                                    y: res.y,
+                                    vx: (Math.random() - 0.5) * 5,
+                                    vy: (Math.random() - 0.5) * 5,
+                                    life: 30,
+                                    color: res.type === 'tree' ? '#8d6e63' : res.type === 'stone' ? '#78909c' : '#ffc107'
+                                });
+                            }
+                        }
+                    }
+                });
 
-// Popup kontrolleri
-shopBtn.addEventListener('click', () => { shopPopup.style.display = 'flex'; renderShop(); });
-settingsBtn.addEventListener('click', () => { settingsPopup.style.display = 'flex'; });
-changelogBtn.addEventListener('click', () => { changelogPopup.style.display = 'flex'; });
+                // Check hits on mobs
+                game.mobs.forEach(mob => {
+                    const dist = Math.sqrt((mob.x - this.x)**2 + (mob.y - this.y)**2);
+                    if (dist < this.radius + mob.radius + 50) {
+                        const angleTo = Math.atan2(mob.y - this.y, mob.x - this.x);
+                        const angleDiff = Math.abs(angleTo - this.angle);
+                        if (angleDiff < 0.8 || angleDiff > Math.PI * 2 - 0.8) {
+                            mob.health -= 15;
+                            mob.aggro = true;
+                            mob.aggroTarget = this;
+                        }
+                    }
+                });
 
-document.getElementById('shop-close').addEventListener('click', () => { shopPopup.style.display = 'none'; });
-document.getElementById('settings-close').addEventListener('click', () => { settingsPopup.style.display = 'none'; });
-document.getElementById('changelog-close').addEventListener('click', () => { changelogPopup.style.display = 'none'; });
+                setTimeout(() => this.attacking = false, 200);
+            }
 
-// Shop tab degisimi
-document.querySelectorAll('.shop-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-        document.querySelectorAll('.shop-tab').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        currentShopTab = tab.dataset.tab;
-        renderShop();
-    });
-});
+            draw() {
+                ctx.save();
+                ctx.translate(this.x - game.camera.x, this.y - game.camera.y);
 
-function renderShop() {
-    const container = document.getElementById('shop-items');
-    const items = shopItems[currentShopTab] || [];
-    document.getElementById('shop-gold-amount').textContent = shopGold;
-    
-    container.innerHTML = items.map(item => {
-        const owned = ownedItems.includes(item.id);
-        const selected = selectedHat === item.id;
-        return `
-            <div class="shop-item ${owned ? 'owned' : ''} ${selected ? 'selected' : ''}" data-id="${item.id}" data-price="${item.price}">
-                <div class="shop-item-icon" style="background: ${item.color};"></div>
-                <div class="shop-item-name">${item.name}</div>
-                <div class="shop-item-price ${owned ? 'owned' : ''}">${owned ? 'OWNED' : item.price + ' G'}</div>
-            </div>
-        `;
-    }).join('');
-    
-    container.querySelectorAll('.shop-item').forEach(el => {
-        el.addEventListener('click', () => {
-            const id = el.dataset.id;
-            const price = parseInt(el.dataset.price);
-            if (ownedItems.includes(id)) {
-                selectedHat = id;
-                renderShop();
-            } else if (shopGold >= price) {
-                shopGold -= price;
-                ownedItems.push(id);
-                selectedHat = id;
-                renderShop();
+                // Shadow
+                ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                ctx.beginPath();
+                ctx.ellipse(5, 5, this.radius, this.radius * 0.5, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Body
+                ctx.fillStyle = '#c9a66b';
+                ctx.strokeStyle = '#8b7355';
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                // Face direction indicator
+                ctx.fillStyle = '#8b7355';
+                ctx.beginPath();
+                ctx.arc(
+                    Math.cos(this.angle) * (this.radius * 0.5),
+                    Math.sin(this.angle) * (this.radius * 0.5),
+                    8, 0, Math.PI * 2
+                );
+                ctx.fill();
+
+                // Eyes
+                const eyeOffset = 12;
+                const eyeAngle1 = this.angle - 0.4;
+                const eyeAngle2 = this.angle + 0.4;
+                ctx.fillStyle = '#333';
+                ctx.beginPath();
+                ctx.arc(Math.cos(eyeAngle1) * eyeOffset, Math.sin(eyeAngle1) * eyeOffset, 5, 0, Math.PI * 2);
+                ctx.arc(Math.cos(eyeAngle2) * eyeOffset, Math.sin(eyeAngle2) * eyeOffset, 5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Weapon (when attacking)
+                if (this.attacking || this.attackTimer > 20) {
+                    ctx.save();
+                    ctx.rotate(this.attackAngle);
+                    ctx.translate(this.radius + 15, 0);
+                    
+                    // Axe handle
+                    ctx.fillStyle = '#8d6e63';
+                    ctx.fillRect(-5, -3, 35, 6);
+                    
+                    // Axe head
+                    ctx.fillStyle = '#78909c';
+                    ctx.beginPath();
+                    ctx.moveTo(25, -15);
+                    ctx.lineTo(40, 0);
+                    ctx.lineTo(25, 15);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.strokeStyle = '#546e7a';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    
+                    ctx.restore();
+                }
+
+                // Name tag
+                ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                ctx.font = 'bold 14px Nunito';
+                ctx.textAlign = 'center';
+                const nameWidth = ctx.measureText(this.name).width;
+                ctx.fillRect(-nameWidth/2 - 6, -this.radius - 28, nameWidth + 12, 20);
+                ctx.fillStyle = '#fff';
+                ctx.fillText(this.name, 0, -this.radius - 13);
+
+                // Health bar above player
+                const barWidth = 50;
+                const healthPercent = this.health / this.maxHealth;
+                ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                ctx.fillRect(-barWidth/2, -this.radius - 8, barWidth, 6);
+                ctx.fillStyle = healthPercent > 0.5 ? '#4caf50' : healthPercent > 0.25 ? '#ff9800' : '#f44336';
+                ctx.fillRect(-barWidth/2, -this.radius - 8, barWidth * healthPercent, 6);
+
+                ctx.restore();
+            }
+        }
+
+        // Resource (Tree, Stone, Gold)
+        class Resource {
+            constructor(type, x, y) {
+                this.type = type;
+                this.x = x;
+                this.y = y;
+                this.health = type === 'tree' ? 100 : type === 'stone' ? 150 : 200;
+                this.maxHealth = this.health;
+                this.radius = type === 'tree' ? 45 : type === 'stone' ? 40 : 35;
+            }
+
+            draw() {
+                const sx = this.x - game.camera.x;
+                const sy = this.y - game.camera.y;
+
+                // Skip if off screen
+                if (sx < -100 || sx > game.width + 100 || sy < -100 || sy > game.height + 100) return;
+
+                ctx.save();
+                ctx.translate(sx, sy);
+
+                // Shadow
+                ctx.fillStyle = 'rgba(0,0,0,0.15)';
+                ctx.beginPath();
+                ctx.ellipse(5, 8, this.radius, this.radius * 0.4, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                if (this.type === 'tree') {
+                    // Trunk
+                    ctx.fillStyle = '#6d4c41';
+                    ctx.strokeStyle = '#5d4037';
+                    ctx.lineWidth = 3;
+                    ctx.fillRect(-8, -10, 16, 35);
+                    ctx.strokeRect(-8, -10, 16, 35);
+
+                    // Leaves
+                    ctx.fillStyle = '#4caf50';
+                    ctx.strokeStyle = '#388e3c';
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.arc(0, -25, this.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    // Leaf detail
+                    ctx.fillStyle = '#66bb6a';
+                    ctx.beginPath();
+                    ctx.arc(-15, -35, 15, 0, Math.PI * 2);
+                    ctx.arc(20, -20, 12, 0, Math.PI * 2);
+                    ctx.fill();
+
+                } else if (this.type === 'stone') {
+                    // Main rock
+                    ctx.fillStyle = '#78909c';
+                    ctx.strokeStyle = '#546e7a';
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.moveTo(-this.radius, 10);
+                    ctx.lineTo(-this.radius + 15, -this.radius + 10);
+                    ctx.lineTo(this.radius - 10, -this.radius + 5);
+                    ctx.lineTo(this.radius, 5);
+                    ctx.lineTo(this.radius - 20, 15);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.stroke();
+
+                    // Highlights
+                    ctx.fillStyle = '#90a4ae';
+                    ctx.beginPath();
+                    ctx.arc(-10, -15, 10, 0, Math.PI * 2);
+                    ctx.fill();
+
+                } else if (this.type === 'gold') {
+                    // Gold rock
+                    ctx.fillStyle = '#ffc107';
+                    ctx.strokeStyle = '#ff8f00';
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.moveTo(-this.radius, 8);
+                    ctx.lineTo(-this.radius + 12, -this.radius + 8);
+                    ctx.lineTo(this.radius - 8, -this.radius + 3);
+                    ctx.lineTo(this.radius, 3);
+                    ctx.lineTo(this.radius - 15, 12);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.stroke();
+
+                    // Sparkles
+                    ctx.fillStyle = '#ffeb3b';
+                    ctx.beginPath();
+                    ctx.arc(-8, -12, 8, 0, Math.PI * 2);
+                    ctx.arc(12, -5, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Health bar
+                if (this.health < this.maxHealth) {
+                    const barWidth = 40;
+                    const healthPercent = this.health / this.maxHealth;
+                    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                    ctx.fillRect(-barWidth/2, -this.radius - 20, barWidth, 6);
+                    ctx.fillStyle = '#4caf50';
+                    ctx.fillRect(-barWidth/2, -this.radius - 20, barWidth * healthPercent, 6);
+                }
+
+                ctx.restore();
+            }
+        }
+
+        // Mob (Wolf, Bull, etc)
+        class Mob {
+            constructor(type, x, y) {
+                this.type = type;
+                this.x = x;
+                this.y = y;
+                this.angle = Math.random() * Math.PI * 2;
+                this.health = type === 'wolf' ? 80 : type === 'bull' ? 150 : 50;
+                this.maxHealth = this.health;
+                this.radius = type === 'wolf' ? 30 : type === 'bull' ? 45 : 25;
+                this.speed = type === 'wolf' ? 2 : type === 'bull' ? 1.5 : 1;
+                this.damage = type === 'wolf' ? 15 : type === 'bull' ? 25 : 10;
+                this.aggro = false;
+                this.aggroTarget = null;
+                this.wanderTimer = 0;
+                this.wanderAngle = Math.random() * Math.PI * 2;
+            }
+
+            update() {
+                if (this.aggro && this.aggroTarget) {
+                    // Chase target
+                    const dx = this.aggroTarget.x - this.x;
+                    const dy = this.aggroTarget.y - this.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    this.angle = Math.atan2(dy, dx);
+                    
+                    if (dist > this.radius + this.aggroTarget.radius) {
+                        this.x += Math.cos(this.angle) * this.speed * 1.5;
+                        this.y += Math.sin(this.angle) * this.speed * 1.5;
+                    } else {
+                        // Attack
+                        if (Math.random() < 0.05) {
+                            this.aggroTarget.health -= this.damage;
+                        }
+                    }
+
+                    // Lose aggro if too far
+                    if (dist > 400) {
+                        this.aggro = false;
+                        this.aggroTarget = null;
+                    }
+                } else {
+                    // Wander
+                    this.wanderTimer--;
+                    if (this.wanderTimer <= 0) {
+                        this.wanderAngle = Math.random() * Math.PI * 2;
+                        this.wanderTimer = 60 + Math.random() * 120;
+                    }
+                    this.x += Math.cos(this.wanderAngle) * this.speed * 0.3;
+                    this.y += Math.sin(this.wanderAngle) * this.speed * 0.3;
+                    this.angle = this.wanderAngle;
+                }
+
+                // Clamp to world
+                this.x = Math.max(this.radius, Math.min(game.worldSize - this.radius, this.x));
+                this.y = Math.max(this.radius, Math.min(game.worldSize - this.radius, this.y));
+            }
+
+            draw() {
+                const sx = this.x - game.camera.x;
+                const sy = this.y - game.camera.y;
+
+                if (sx < -100 || sx > game.width + 100 || sy < -100 || sy > game.height + 100) return;
+
+                ctx.save();
+                ctx.translate(sx, sy);
+                ctx.rotate(this.angle);
+
+                // Shadow
+                ctx.fillStyle = 'rgba(0,0,0,0.2)';
+                ctx.beginPath();
+                ctx.ellipse(3, 3, this.radius, this.radius * 0.5, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                if (this.type === 'wolf') {
+                    // Body
+                    ctx.fillStyle = '#607d8b';
+                    ctx.strokeStyle = '#455a64';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, this.radius, this.radius * 0.7, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    // Head
+                    ctx.fillStyle = '#78909c';
+                    ctx.beginPath();
+                    ctx.ellipse(this.radius * 0.6, 0, 18, 14, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    // Ears
+                    ctx.fillStyle = '#546e7a';
+                    ctx.beginPath();
+                    ctx.moveTo(this.radius * 0.5, -12);
+                    ctx.lineTo(this.radius * 0.7, -22);
+                    ctx.lineTo(this.radius * 0.9, -10);
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.moveTo(this.radius * 0.5, 12);
+                    ctx.lineTo(this.radius * 0.7, 22);
+                    ctx.lineTo(this.radius * 0.9, 10);
+                    ctx.fill();
+
+                    // Eyes
+                    ctx.fillStyle = this.aggro ? '#f44336' : '#ffeb3b';
+                    ctx.beginPath();
+                    ctx.arc(this.radius * 0.7, -5, 4, 0, Math.PI * 2);
+                    ctx.arc(this.radius * 0.7, 5, 4, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Snout
+                    ctx.fillStyle = '#37474f';
+                    ctx.beginPath();
+                    ctx.ellipse(this.radius * 0.9, 0, 6, 4, 0, 0, Math.PI * 2);
+                    ctx.fill();
+
+                } else if (this.type === 'bull') {
+                    // Body
+                    ctx.fillStyle = '#6d4c41';
+                    ctx.strokeStyle = '#5d4037';
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, this.radius, this.radius * 0.75, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    // Head
+                    ctx.fillStyle = '#8d6e63';
+                    ctx.beginPath();
+                    ctx.ellipse(this.radius * 0.5, 0, 25, 20, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    // Horns
+                    ctx.fillStyle = '#d7ccc8';
+                    ctx.strokeStyle = '#bcaaa4';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(this.radius * 0.3, -15);
+                    ctx.quadraticCurveTo(this.radius * 0.1, -35, this.radius * 0.5, -30);
+                    ctx.lineTo(this.radius * 0.4, -20);
+                    ctx.fill();
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(this.radius * 0.3, 15);
+                    ctx.quadraticCurveTo(this.radius * 0.1, 35, this.radius * 0.5, 30);
+                    ctx.lineTo(this.radius * 0.4, 20);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    // Eyes
+                    ctx.fillStyle = this.aggro ? '#f44336' : '#333';
+                    ctx.beginPath();
+                    ctx.arc(this.radius * 0.55, -8, 5, 0, Math.PI * 2);
+                    ctx.arc(this.radius * 0.55, 8, 5, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Nose ring
+                    ctx.strokeStyle = '#ffc107';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(this.radius * 0.7, 0, 8, 0.5, Math.PI - 0.5);
+                    ctx.stroke();
+
+                } else {
+                    // Rabbit/small animal
+                    ctx.fillStyle = '#bcaaa4';
+                    ctx.strokeStyle = '#a1887f';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, this.radius, this.radius * 0.8, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    // Ears
+                    ctx.fillStyle = '#d7ccc8';
+                    ctx.beginPath();
+                    ctx.ellipse(this.radius * 0.3, -15, 5, 12, -0.2, 0, Math.PI * 2);
+                    ctx.ellipse(this.radius * 0.3, 15, 5, 12, 0.2, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Eyes
+                    ctx.fillStyle = '#333';
+                    ctx.beginPath();
+                    ctx.arc(this.radius * 0.5, -4, 3, 0, Math.PI * 2);
+                    ctx.arc(this.radius * 0.5, 4, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                ctx.restore();
+
+                // Health bar
+                if (this.health < this.maxHealth) {
+                    const barWidth = 40;
+                    const healthPercent = this.health / this.maxHealth;
+                    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                    ctx.fillRect(sx - barWidth/2, sy - this.radius - 15, barWidth, 6);
+                    ctx.fillStyle = '#f44336';
+                    ctx.fillRect(sx - barWidth/2, sy - this.radius - 15, barWidth * healthPercent, 6);
+                }
+            }
+        }
+
+        // ==================== GAME FUNCTIONS ====================
+        function resize() {
+            game.width = canvas.width = window.innerWidth;
+            game.height = canvas.height = window.innerHeight;
+        }
+
+        function initWorld() {
+            // Generate resources
+            for (let i = 0; i < 200; i++) {
+                const type = Math.random() < 0.6 ? 'tree' : Math.random() < 0.7 ? 'stone' : 'gold';
+                game.resources.push(new Resource(
+                    type,
+                    100 + Math.random() * (game.worldSize - 200),
+                    100 + Math.random() * (game.worldSize - 200)
+                ));
+            }
+
+            // Generate mobs
+            for (let i = 0; i < 30; i++) {
+                const type = Math.random() < 0.4 ? 'wolf' : Math.random() < 0.6 ? 'bull' : 'rabbit';
+                game.mobs.push(new Mob(
+                    type,
+                    100 + Math.random() * (game.worldSize - 200),
+                    100 + Math.random() * (game.worldSize - 200)
+                ));
+            }
+        }
+
+        function drawGrid() {
+            const gridSize = 100;
+            const offsetX = game.camera.x % gridSize;
+            const offsetY = game.camera.y % gridSize;
+
+            ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+            ctx.lineWidth = 1;
+
+            for (let x = -offsetX; x < game.width + gridSize; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, game.height);
+                ctx.stroke();
+            }
+
+            for (let y = -offsetY; y < game.height + gridSize; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(game.width, y);
+                ctx.stroke();
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('healthBar').style.width = (game.player.health / game.player.maxHealth * 100) + '%';
+            document.getElementById('healthValue').textContent = Math.floor(game.player.health) + '/' + game.player.maxHealth;
+            
+            document.getElementById('foodBar').style.width = (game.player.food / game.player.maxFood * 100) + '%';
+            document.getElementById('foodValue').textContent = Math.floor(game.player.food) + '/' + game.player.maxFood;
+            
+            document.getElementById('xpBar').style.width = (game.player.xp / game.player.xpNeeded * 100) + '%';
+            document.getElementById('xpValue').textContent = game.player.xp + '/' + game.player.xpNeeded;
+            
+            document.getElementById('ageValue').textContent = game.player.age;
+            document.getElementById('woodCount').textContent = game.player.wood;
+            document.getElementById('stoneCount').textContent = game.player.stone;
+            document.getElementById('goldCount').textContent = game.player.gold;
+            document.getElementById('playerScore').textContent = game.player.score;
+        }
+
+        function updateMinimap() {
+            const player = game.player;
+            const mapSize = 150;
+            const scale = mapSize / game.worldSize;
+            
+            document.getElementById('minimapPlayer').style.left = (player.x * scale) + 'px';
+            document.getElementById('minimapPlayer').style.top = (player.y * scale) + 'px';
+        }
+
+        // ==================== INPUT ====================
+        const keys = {};
+        let mouseX = 0, mouseY = 0;
+
+        document.addEventListener('keydown', e => {
+            keys[e.key.toLowerCase()] = true;
+            
+            // Number keys for action bar
+            if (e.key >= '1' && e.key <= '8') {
+                const slot = parseInt(e.key) - 1;
+                document.querySelectorAll('.action-slot').forEach((s, i) => {
+                    s.classList.toggle('active', i === slot);
+                });
+                if (game.player) game.player.selectedSlot = slot;
             }
         });
-    });
-}
 
-// Respawn
-respawnBtn.addEventListener('click', () => {
-    deathScreen.style.display = 'none';
-    resetPlayer();
-});
-
-function resetPlayer() {
-    player.x = world.width / 2 + (Math.random() - 0.5) * 500;
-    player.y = world.height / 2 + (Math.random() - 0.5) * 500;
-    player.hp = 100;
-    player.maxHp = 100;
-    player.xp = 0;
-    player.maxXp = 50;
-    player.level = 1;
-    player.wood = 0;
-    player.stone = 0;
-    player.gold = 0;
-    player.food = 5;
-    player.damage = 15;
-    player.vx = 0;
-    player.vy = 0;
-    kills = 0;
-    age = 0;
-    ageTimer = 0;
-}
-
-function showDeathScreen() {
-    document.getElementById('death-score').textContent = Math.floor(player.xp + player.level * 100);
-    document.getElementById('death-kills').textContent = kills;
-    document.getElementById('death-age').textContent = age;
-    deathScreen.style.display = 'flex';
-    
-    // Gold ver
-    shopGold += Math.floor(player.level * 10 + kills * 5);
-}
-
-// ==========================================
-// SPLOOP.IO GRAFIK FONKSIYONLARI
-// ==========================================
-function drawOutlinedCircle(x, y, radius, fill, stroke, lineWidth = 7) {
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, Math.PI * 2);
-    ctx.fillStyle = fill;
-    ctx.fill();
-    ctx.lineWidth = lineWidth;
-    ctx.strokeStyle = stroke;
-    ctx.stroke();
-}
-
-// AGAC - SPLOOP.IO
-function drawTree(x, y, scale = 1) {
-    const s = scale;
-    drawOutlinedCircle(x - 35*s, y + 10*s, 38*s, '#7ab85a', '#4a7a32', 8);
-    drawOutlinedCircle(x + 35*s, y + 10*s, 38*s, '#7ab85a', '#4a7a32', 8);
-    drawOutlinedCircle(x - 25*s, y - 20*s, 35*s, '#82c45e', '#4a7a32', 8);
-    drawOutlinedCircle(x + 25*s, y - 20*s, 35*s, '#82c45e', '#4a7a32', 8);
-    drawOutlinedCircle(x, y - 35*s, 40*s, '#8ed068', '#4a7a32', 8);
-    drawOutlinedCircle(x, y, 42*s, '#96d870', '#4a7a32', 8);
-    
-    ctx.fillStyle = '#a6e080';
-    ctx.beginPath();
-    ctx.ellipse(x - 15*s, y - 10*s, 10*s, 6*s, -0.4, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse(x + 18*s, y - 25*s, 9*s, 5*s, 0.3, 0, Math.PI * 2);
-    ctx.fill();
-}
-
-// TAS - SPLOOP.IO
-function drawRock(x, y, scale = 1) {
-    const s = scale;
-    ctx.save();
-    ctx.translate(x, y);
-    
-    ctx.beginPath();
-    ctx.moveTo(-35*s, 10*s);
-    ctx.lineTo(-38*s, -8*s);
-    ctx.lineTo(-22*s, -30*s);
-    ctx.lineTo(8*s, -35*s);
-    ctx.lineTo(32*s, -20*s);
-    ctx.lineTo(38*s, 5*s);
-    ctx.lineTo(25*s, 28*s);
-    ctx.lineTo(-5*s, 32*s);
-    ctx.lineTo(-28*s, 22*s);
-    ctx.closePath();
-    
-    ctx.fillStyle = '#6a6a7e';
-    ctx.fill();
-    ctx.lineWidth = 8;
-    ctx.strokeStyle = '#4a4a5a';
-    ctx.stroke();
-    
-    ctx.beginPath();
-    ctx.moveTo(-30*s, -5*s);
-    ctx.lineTo(-18*s, -25*s);
-    ctx.lineTo(5*s, -28*s);
-    ctx.lineTo(-5*s, -5*s);
-    ctx.lineTo(-22*s, 2*s);
-    ctx.closePath();
-    ctx.fillStyle = '#8888a0';
-    ctx.fill();
-    
-    ctx.beginPath();
-    ctx.moveTo(12*s, 8*s);
-    ctx.lineTo(32*s, 2*s);
-    ctx.lineTo(22*s, 22*s);
-    ctx.lineTo(5*s, 25*s);
-    ctx.closePath();
-    ctx.fillStyle = '#555568';
-    ctx.fill();
-    
-    ctx.restore();
-}
-
-// ALTIN - SPLOOP.IO
-function drawGold(x, y, scale = 1) {
-    const s = scale;
-    ctx.save();
-    ctx.translate(x, y);
-    
-    ctx.beginPath();
-    ctx.moveTo(-30*s, 12*s);
-    ctx.lineTo(-35*s, -5*s);
-    ctx.lineTo(-18*s, -28*s);
-    ctx.lineTo(10*s, -35*s);
-    ctx.lineTo(32*s, -18*s);
-    ctx.lineTo(35*s, 8*s);
-    ctx.lineTo(20*s, 28*s);
-    ctx.lineTo(-8*s, 32*s);
-    ctx.lineTo(-25*s, 20*s);
-    ctx.closePath();
-    
-    ctx.fillStyle = '#e8b830';
-    ctx.fill();
-    ctx.lineWidth = 8;
-    ctx.strokeStyle = '#b08820';
-    ctx.stroke();
-    
-    ctx.beginPath();
-    ctx.moveTo(-25*s, -2*s);
-    ctx.lineTo(-12*s, -22*s);
-    ctx.lineTo(8*s, -28*s);
-    ctx.lineTo(0*s, -5*s);
-    ctx.lineTo(-18*s, 5*s);
-    ctx.closePath();
-    ctx.fillStyle = '#f8d850';
-    ctx.fill();
-    
-    ctx.restore();
-}
-
-// OYUNCU - SPLOOP.IO
-function drawPlayer(p, isBot = false) {
-    ctx.save();
-    ctx.translate(p.x, p.y);
-    ctx.rotate(p.angle);
-    
-    // Sol el - KARE
-    ctx.save();
-    ctx.translate(-p.radius * 0.7, -p.radius * 0.4);
-    ctx.fillStyle = '#1a1a1a';
-    ctx.strokeStyle = '#0a0a0a';
-    ctx.lineWidth = 3;
-    ctx.fillRect(-9, -9, 18, 18);
-    ctx.strokeRect(-9, -9, 18, 18);
-    ctx.restore();
-    
-    // Silah
-    ctx.save();
-    let weaponRotation = 0;
-    if (p.isAttacking) {
-        weaponRotation = Math.sin(p.attackProgress * Math.PI) * 1.5;
-    }
-    ctx.rotate(weaponRotation);
-    
-    // Sag el
-    ctx.save();
-    ctx.translate(p.radius * 0.7, p.radius * 0.4);
-    ctx.fillStyle = '#1a1a1a';
-    ctx.strokeStyle = '#0a0a0a';
-    ctx.lineWidth = 3;
-    ctx.fillRect(-9, -9, 18, 18);
-    ctx.strokeRect(-9, -9, 18, 18);
-    ctx.restore();
-    
-    // Kilic
-    drawSword(p.radius + 15, 0);
-    ctx.restore();
-    
-    // Govde
-    const bodyColor = isBot ? '#e85a5a' : '#e8d4b8';
-    const bodyStroke = isBot ? '#c04040' : '#c4b090';
-    drawOutlinedCircle(0, 0, p.radius, bodyColor, bodyStroke, 7);
-    
-    ctx.restore();
-    
-    // Isim ve HP bar
-    ctx.save();
-    ctx.translate(p.x, p.y);
-    ctx.fillStyle = '#fff';
-    ctx.font = 'bold 14px Nunito';
-    ctx.textAlign = 'center';
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 4;
-    const name = isBot ? p.name : playerName;
-    ctx.strokeText(name, 0, -p.radius - 28);
-    ctx.fillText(name, 0, -p.radius - 28);
-    
-    drawHealthBar(0, p.radius + 12, 55, p.hp, p.maxHp, '#4CAF50', '#2d5a30');
-    ctx.restore();
-}
-
-// KILIC
-function drawSword(x, y) {
-    ctx.save();
-    ctx.translate(x, y);
-    
-    ctx.fillStyle = '#8B5A2B';
-    ctx.strokeStyle = '#5D3A1A';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.roundRect(-18, -7, 22, 14, 3);
-    ctx.fill();
-    ctx.stroke();
-    
-    ctx.fillStyle = '#DAA520';
-    ctx.strokeStyle = '#B8860B';
-    ctx.beginPath();
-    ctx.roundRect(2, -12, 10, 24, 3);
-    ctx.fill();
-    ctx.stroke();
-    
-    ctx.beginPath();
-    ctx.moveTo(10, -6);
-    ctx.lineTo(55, -4);
-    ctx.lineTo(65, 0);
-    ctx.lineTo(55, 4);
-    ctx.lineTo(10, 6);
-    ctx.closePath();
-    ctx.fillStyle = '#a8a8a8';
-    ctx.fill();
-    ctx.strokeStyle = '#686868';
-    ctx.lineWidth = 3;
-    ctx.stroke();
-    
-    ctx.fillStyle = '#c8c8c8';
-    ctx.beginPath();
-    ctx.moveTo(14, -3);
-    ctx.lineTo(52, -1);
-    ctx.lineTo(52, 1);
-    ctx.lineTo(14, 0);
-    ctx.closePath();
-    ctx.fill();
-    
-    ctx.restore();
-}
-
-// MOBLAR
-function drawWolf(x, y, radius, angle) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(angle);
-    
-    ctx.fillStyle = '#707070';
-    ctx.strokeStyle = '#484848';
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.ellipse(-radius - 12, 0, 14, 10, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    
-    drawOutlinedCircle(0, 0, radius, '#888888', '#585858', 6);
-    
-    ctx.fillStyle = '#787878';
-    ctx.strokeStyle = '#484848';
-    ctx.lineWidth = 4;
-    
-    ctx.beginPath();
-    ctx.moveTo(-10, -radius + 5);
-    ctx.lineTo(-18, -radius - 20);
-    ctx.lineTo(-2, -radius + 2);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-    
-    ctx.beginPath();
-    ctx.moveTo(10, -radius + 5);
-    ctx.lineTo(18, -radius - 20);
-    ctx.lineTo(2, -radius + 2);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-    
-    ctx.fillStyle = '#303030';
-    ctx.beginPath();
-    ctx.ellipse(radius - 3, 0, 7, 6, 0, 0, Math.PI * 2);
-    ctx.fill();
-    
-    ctx.restore();
-}
-
-function drawCow(x, y, radius, angle) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(angle);
-    
-    drawOutlinedCircle(0, 0, radius, '#f5f5f5', '#c8c8c8', 6);
-    
-    ctx.fillStyle = '#2a2a2a';
-    ctx.beginPath();
-    ctx.ellipse(-10, -6, 10, 8, 0.3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse(12, 10, 9, 7, -0.4, 0, Math.PI * 2);
-    ctx.fill();
-    
-    ctx.fillStyle = '#8B5513';
-    ctx.strokeStyle = '#5D3A1A';
-    ctx.lineWidth = 3;
-    
-    ctx.beginPath();
-    ctx.moveTo(-12, -radius + 5);
-    ctx.quadraticCurveTo(-22, -radius - 12, -14, -radius - 18);
-    ctx.quadraticCurveTo(-8, -radius - 8, -8, -radius + 3);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-    
-    ctx.beginPath();
-    ctx.moveTo(12, -radius + 5);
-    ctx.quadraticCurveTo(22, -radius - 12, 14, -radius - 18);
-    ctx.quadraticCurveTo(8, -radius - 8, 8, -radius + 3);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-    
-    ctx.fillStyle = '#FFB0B0';
-    ctx.beginPath();
-    ctx.ellipse(radius - 2, 5, 12, 10, 0, 0, Math.PI * 2);
-    ctx.fill();
-    
-    ctx.restore();
-}
-
-function drawPig(x, y, radius, angle) {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.rotate(angle);
-    
-    drawOutlinedCircle(0, 0, radius, '#FFB8B8', '#E08888', 6);
-    
-    ctx.fillStyle = '#FFB0B0';
-    ctx.strokeStyle = '#E08080';
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.ellipse(-radius * 0.6, -radius * 0.7, 12, 16, -0.3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.ellipse(radius * 0.6, -radius * 0.7, 12, 16, 0.3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-    
-    ctx.fillStyle = '#FF9090';
-    ctx.beginPath();
-    ctx.ellipse(radius - 3, 0, 14, 12, 0, 0, Math.PI * 2);
-    ctx.fill();
-    
-    ctx.restore();
-}
-
-// YAPILAR
-function drawWall(x, y) {
-    ctx.save();
-    ctx.translate(x, y);
-    drawOutlinedCircle(-22, 15, 25, '#c4a060', '#8a7040', 6);
-    drawOutlinedCircle(22, 15, 25, '#c4a060', '#8a7040', 6);
-    drawOutlinedCircle(-15, -8, 23, '#c4a060', '#8a7040', 6);
-    drawOutlinedCircle(15, -8, 23, '#c4a060', '#8a7040', 6);
-    drawOutlinedCircle(0, -20, 26, '#c4a060', '#8a7040', 6);
-    drawOutlinedCircle(0, 8, 28, '#c4a060', '#8a7040', 6);
-    ctx.restore();
-}
-
-function drawSpike(x, y, radius) {
-    ctx.save();
-    ctx.translate(x, y);
-    
-    drawOutlinedCircle(0, 0, radius * 0.5, '#8a7050', '#5a4830', 5);
-    
-    for (let i = 0; i < 6; i++) {
-        const angle = (i / 6) * Math.PI * 2 - Math.PI / 2;
-        ctx.save();
-        ctx.rotate(angle);
-        ctx.beginPath();
-        ctx.moveTo(radius * 0.4, -12);
-        ctx.lineTo(radius + 15, 0);
-        ctx.lineTo(radius * 0.4, 12);
-        ctx.closePath();
-        ctx.fillStyle = '#9a8060';
-        ctx.fill();
-        ctx.lineWidth = 4;
-        ctx.strokeStyle = '#6a5040';
-        ctx.stroke();
-        ctx.restore();
-    }
-    ctx.restore();
-}
-
-function drawWindmill(x, y, rotation) {
-    ctx.save();
-    ctx.translate(x, y);
-    
-    drawOutlinedCircle(0, 0, 35, '#c4a060', '#8a7040', 6);
-    
-    ctx.save();
-    ctx.rotate(rotation);
-    for (let i = 0; i < 4; i++) {
-        ctx.save();
-        ctx.rotate((i / 4) * Math.PI * 2);
-        ctx.fillStyle = '#e8e0d0';
-        ctx.strokeStyle = '#a8a090';
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.moveTo(10, -8);
-        ctx.lineTo(70, -20);
-        ctx.lineTo(75, 0);
-        ctx.lineTo(70, 20);
-        ctx.lineTo(10, 8);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-        ctx.restore();
-    }
-    ctx.restore();
-    
-    drawOutlinedCircle(0, 0, 15, '#8a7050', '#5a4030', 4);
-    ctx.restore();
-}
-
-function drawTurret(x, y, angle) {
-    ctx.save();
-    ctx.translate(x, y);
-    
-    drawOutlinedCircle(0, 0, 30, '#707080', '#505060', 6);
-    
-    ctx.save();
-    ctx.rotate(angle);
-    ctx.fillStyle = '#505058';
-    ctx.strokeStyle = '#303038';
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.roundRect(15, -8, 45, 16, 4);
-    ctx.fill();
-    ctx.stroke();
-    ctx.restore();
-    
-    drawOutlinedCircle(0, 0, 18, '#808090', '#585868', 5);
-    ctx.restore();
-}
-
-// HP BAR
-function drawHealthBar(x, y, width, hp, maxHp, fillColor = '#c0392b', bgColor = '#3d1515') {
-    const height = 8;
-    const percent = Math.max(0, hp / maxHp);
-    
-    ctx.fillStyle = bgColor;
-    ctx.strokeStyle = '#1d0505';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.roundRect(x - width/2, y, width, height, 3);
-    ctx.fill();
-    ctx.stroke();
-    
-    if (percent > 0) {
-        ctx.fillStyle = fillColor;
-        ctx.beginPath();
-        ctx.roundRect(x - width/2 + 2, y + 2, (width - 4) * percent, height - 4, 2);
-        ctx.fill();
-    }
-}
-
-// ZEMIN
-function drawGround() {
-    ctx.fillStyle = '#88b868';
-    ctx.fillRect(0, 0, world.width, world.height);
-    
-    ctx.strokeStyle = 'rgba(60, 90, 40, 0.25)';
-    ctx.lineWidth = 1;
-    
-    const gridSize = 100;
-    for (let gx = 0; gx <= world.width; gx += gridSize) {
-        ctx.beginPath();
-        ctx.moveTo(gx, 0);
-        ctx.lineTo(gx, world.height);
-        ctx.stroke();
-    }
-    for (let gy = 0; gy <= world.height; gy += gridSize) {
-        ctx.beginPath();
-        ctx.moveTo(0, gy);
-        ctx.lineTo(world.width, gy);
-        ctx.stroke();
-    }
-    
-    ctx.strokeStyle = '#5a7a48';
-    ctx.lineWidth = 20;
-    ctx.strokeRect(0, 0, world.width, world.height);
-}
-
-// ==========================================
-// ENTITY URETIMI
-// ==========================================
-function spawnEntities() {
-    for (let i = 0; i < 120; i++) {
-        entities.push({
-            type: 'tree',
-            x: Math.random() * (world.width - 200) + 100,
-            y: Math.random() * (world.height - 200) + 100,
-            scale: 0.8 + Math.random() * 0.4,
-            hp: 100, maxHp: 100
+        document.addEventListener('keyup', e => {
+            keys[e.key.toLowerCase()] = false;
         });
-    }
-    
-    for (let i = 0; i < 60; i++) {
-        entities.push({
-            type: 'rock',
-            x: Math.random() * (world.width - 200) + 100,
-            y: Math.random() * (world.height - 200) + 100,
-            scale: 0.7 + Math.random() * 0.5,
-            hp: 150, maxHp: 150
+
+        document.addEventListener('mousemove', e => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
         });
-    }
-    
-    for (let i = 0; i < 25; i++) {
-        entities.push({
-            type: 'gold',
-            x: Math.random() * (world.width - 200) + 100,
-            y: Math.random() * (world.height - 200) + 100,
-            scale: 0.6 + Math.random() * 0.4,
-            hp: 200, maxHp: 200
+
+        document.addEventListener('mousedown', e => {
+            if (game.player && e.button === 0) {
+                game.player.attack();
+            }
         });
-    }
-    
-    const mobTypes = ['wolf', 'cow', 'pig'];
-    for (let i = 0; i < 30; i++) {
-        const type = mobTypes[Math.floor(Math.random() * mobTypes.length)];
-        entities.push({
-            type: type,
-            x: Math.random() * (world.width - 200) + 100,
-            y: Math.random() * (world.height - 200) + 100,
-            radius: 28,
-            angle: Math.random() * Math.PI * 2,
-            vx: 0, vy: 0,
-            hp: type === 'wolf' ? 80 : type === 'cow' ? 100 : 60,
-            maxHp: type === 'wolf' ? 80 : type === 'cow' ? 100 : 60
-        });
-    }
-}
 
-// BOT OYUNCULAR
-function spawnBots() {
-    const botNames = ['ProGamer', 'Destroyer', 'Builder', 'Hunter', 'Ninja', 'Legend', 'Master', 'Champion'];
-    for (let i = 0; i < 5; i++) {
-        bots.push({
-            x: Math.random() * (world.width - 200) + 100,
-            y: Math.random() * (world.height - 200) + 100,
-            radius: 32,
-            angle: Math.random() * Math.PI * 2,
-            vx: 0, vy: 0,
-            hp: 100, maxHp: 100,
-            name: botNames[Math.floor(Math.random() * botNames.length)] + '#' + Math.floor(Math.random() * 999),
-            isAttacking: false, attackProgress: 0,
-            attackCooldown: 0,
-            targetAngle: Math.random() * Math.PI * 2,
-            score: Math.floor(Math.random() * 500)
-        });
-    }
-}
-
-// ==========================================
-// KONTROLLER
-// ==========================================
-const leftJoystick = { active: false, id: null, startX: 0, startY: 0, currX: 0, currY: 0 };
-const rightJoystick = { active: false, id: null, startX: 0, startY: 0, currX: 0, currY: 0 };
-
-const leftStick = document.getElementById('left-stick');
-const rightStick = document.getElementById('right-stick');
-const leftArea = document.getElementById('left-joystick-area');
-const rightArea = document.getElementById('right-joystick-area');
-
-function getAreaCenter(area) {
-    const rect = area.getBoundingClientRect();
-    return { x: rect.left + rect.width/2, y: rect.top + rect.height/2 };
-}
-
-function handleTouchStart(e) {
-    if (!gameStarted) return;
-    for (let touch of e.changedTouches) {
-        const leftRect = leftArea.getBoundingClientRect();
-        const rightRect = rightArea.getBoundingClientRect();
-        
-        if (touch.clientX >= leftRect.left && touch.clientX <= leftRect.right &&
-            touch.clientY >= leftRect.top && touch.clientY <= leftRect.bottom) {
-            leftJoystick.active = true;
-            leftJoystick.id = touch.identifier;
-            const center = getAreaCenter(leftArea);
-            leftJoystick.startX = center.x;
-            leftJoystick.startY = center.y;
-            leftJoystick.currX = touch.clientX;
-            leftJoystick.currY = touch.clientY;
-        }
-        
-        if (touch.clientX >= rightRect.left && touch.clientX <= rightRect.right &&
-            touch.clientY >= rightRect.top && touch.clientY <= rightRect.bottom) {
-            rightJoystick.active = true;
-            rightJoystick.id = touch.identifier;
-            const center = getAreaCenter(rightArea);
-            rightJoystick.startX = center.x;
-            rightJoystick.startY = center.y;
-            rightJoystick.currX = touch.clientX;
-            rightJoystick.currY = touch.clientY;
-        }
-    }
-}
-
-function handleTouchMove(e) {
-    for (let touch of e.changedTouches) {
-        if (touch.identifier === leftJoystick.id) {
-            leftJoystick.currX = touch.clientX;
-            leftJoystick.currY = touch.clientY;
-        }
-        if (touch.identifier === rightJoystick.id) {
-            rightJoystick.currX = touch.clientX;
-            rightJoystick.currY = touch.clientY;
-        }
-    }
-}
-
-function handleTouchEnd(e) {
-    for (let touch of e.changedTouches) {
-        if (touch.identifier === leftJoystick.id) {
-            leftJoystick.active = false;
-            leftJoystick.id = null;
-            player.vx = 0;
-            player.vy = 0;
-            leftStick.style.transform = 'translate(0px, 0px)';
-        }
-        if (touch.identifier === rightJoystick.id) {
-            rightJoystick.active = false;
-            rightJoystick.id = null;
-            rightStick.style.transform = 'translate(0px, 0px)';
-        }
-    }
-}
-
-document.addEventListener('touchstart', handleTouchStart, { passive: false });
-document.addEventListener('touchmove', handleTouchMove, { passive: false });
-document.addEventListener('touchend', handleTouchEnd);
-
-// Mouse kontrolleri
-let mouseDown = false;
-canvas.addEventListener('mousedown', (e) => {
-    if (!gameStarted) return;
-    if (e.clientX < window.innerWidth / 2) {
-        leftJoystick.active = true;
-        const center = getAreaCenter(leftArea);
-        leftJoystick.startX = center.x;
-        leftJoystick.startY = center.y;
-        leftJoystick.currX = e.clientX;
-        leftJoystick.currY = e.clientY;
-    } else {
-        rightJoystick.active = true;
-        const center = getAreaCenter(rightArea);
-        rightJoystick.startX = center.x;
-        rightJoystick.startY = center.y;
-        rightJoystick.currX = e.clientX;
-        rightJoystick.currY = e.clientY;
-    }
-    mouseDown = true;
-});
-
-canvas.addEventListener('mousemove', (e) => {
-    if (!mouseDown || !gameStarted) return;
-    if (e.clientX < window.innerWidth / 2 && leftJoystick.active) {
-        leftJoystick.currX = e.clientX;
-        leftJoystick.currY = e.clientY;
-    } else if (e.clientX >= window.innerWidth / 2 && rightJoystick.active) {
-        rightJoystick.currX = e.clientX;
-        rightJoystick.currY = e.clientY;
-    }
-});
-
-canvas.addEventListener('mouseup', () => {
-    mouseDown = false;
-    leftJoystick.active = false;
-    rightJoystick.active = false;
-    player.vx = 0;
-    player.vy = 0;
-    leftStick.style.transform = 'translate(0px, 0px)';
-    rightStick.style.transform = 'translate(0px, 0px)';
-});
-
-// Envanter secimi
-const invSlots = document.querySelectorAll('.inv-slot');
-invSlots.forEach(slot => {
-    slot.addEventListener('click', () => {
-        invSlots.forEach(s => s.classList.remove('selected'));
-        slot.classList.add('selected');
-        player.selectedItem = slot.dataset.item;
-    });
-    slot.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        invSlots.forEach(s => s.classList.remove('selected'));
-        slot.classList.add('selected');
-        player.selectedItem = slot.dataset.item;
-    });
-});
-
-document.addEventListener('keydown', (e) => {
-    if (e.key >= '1' && e.key <= '4') {
-        const index = parseInt(e.key) - 1;
-        if (invSlots[index]) {
-            invSlots.forEach(s => s.classList.remove('selected'));
-            invSlots[index].classList.add('selected');
-            player.selectedItem = invSlots[index].dataset.item;
-        }
-    }
-});
-
-// Insa sistemi
-const buildBtns = document.querySelectorAll('.build-btn');
-const buildCosts = {
-    wall: { wood: 10, stone: 5 },
-    spike: { wood: 20, stone: 5 },
-    windmill: { wood: 50, stone: 10 },
-    turret: { wood: 30, stone: 30 }
-};
-
-buildBtns.forEach(btn => {
-    const handler = (e) => {
-        e.preventDefault();
-        const type = btn.dataset.build;
-        const cost = buildCosts[type];
-        
-        if (player.wood >= cost.wood && player.stone >= cost.stone) {
-            player.wood -= cost.wood;
-            player.stone -= cost.stone;
-            
-            const spawnDist = player.radius + 60;
-            const spawnX = player.x + Math.cos(player.angle) * spawnDist;
-            const spawnY = player.y + Math.sin(player.angle) * spawnDist;
-            
-            entities.push({
-                type: type,
-                x: spawnX, y: spawnY,
-                angle: player.angle,
-                rotation: 0,
-                hp: type === 'wall' ? 400 : type === 'spike' ? 200 : type === 'windmill' ? 300 : 250,
-                maxHp: type === 'wall' ? 400 : type === 'spike' ? 200 : type === 'windmill' ? 300 : 250,
-                isBuilding: true,
-                owner: 'player'
+        // Action bar clicks
+        document.querySelectorAll('.action-slot').forEach((slot, i) => {
+            slot.addEventListener('click', () => {
+                document.querySelectorAll('.action-slot').forEach(s => s.classList.remove('active'));
+                slot.classList.add('active');
+                if (game.player) game.player.selectedSlot = i;
             });
-            
-            spawnParticles(spawnX, spawnY, '#c4a060', 15);
-        }
-    };
-    btn.addEventListener('click', handler);
-    btn.addEventListener('touchstart', handler);
-});
-
-// ==========================================
-// SALDIRI
-// ==========================================
-function executeAttack() {
-    if (player.attackCooldown > 0) return;
-    
-    player.isAttacking = true;
-    player.attackProgress = 0;
-    player.attackCooldown = player.maxAttackCooldown;
-    
-    const attackRange = player.radius + 75;
-    let damage = player.damage;
-    
-    // Kaynaklara saldiri
-    for (let i = entities.length - 1; i >= 0; i--) {
-        const ent = entities[i];
-        const dist = Math.hypot(ent.x - player.x, ent.y - player.y);
-        const entRadius = ent.radius || (ent.scale || 1) * 45;
-        
-        if (dist < attackRange + entRadius) {
-            const angleToEnt = Math.atan2(ent.y - player.y, ent.x - player.x);
-            let angleDiff = Math.abs(player.angle - angleToEnt);
-            if (angleDiff > Math.PI) angleDiff = Math.PI * 2 - angleDiff;
-            
-            if (angleDiff < Math.PI / 2) {
-                ent.hp -= damage;
-                
-                if (ent.vx !== undefined) {
-                    ent.vx = Math.cos(angleToEnt) * 12;
-                    ent.vy = Math.sin(angleToEnt) * 12;
-                }
-                
-                addFloatingText(ent.x, ent.y - 30, `-${Math.round(damage)}`, '#e74c3c');
-                
-                if (ent.type === 'tree') {
-                    player.wood += 2;
-                    spawnParticles(ent.x, ent.y, '#8fcc70', 8);
-                    gainXp(3);
-                    if (ent.hp <= 0) {
-                        ent.hp = ent.maxHp;
-                        player.wood += 10;
-                    }
-                } else if (ent.type === 'rock') {
-                    player.stone += 1;
-                    spawnParticles(ent.x, ent.y, '#6a6a7e', 8);
-                    gainXp(4);
-                    if (ent.hp <= 0) {
-                        ent.hp = ent.maxHp;
-                        player.stone += 8;
-                    }
-                } else if (ent.type === 'gold') {
-                    player.gold += 1;
-                    spawnParticles(ent.x, ent.y, '#f8d850', 8);
-                    gainXp(8);
-                    if (ent.hp <= 0) {
-                        ent.hp = ent.maxHp;
-                        player.gold += 5;
-                    }
-                } else if (ent.type === 'wolf' || ent.type === 'cow' || ent.type === 'pig') {
-                    spawnParticles(ent.x, ent.y, '#c0392b', 8);
-                    if (ent.hp <= 0) {
-                        player.food += ent.type === 'cow' ? 5 : 3;
-                        gainXp(ent.type === 'wolf' ? 30 : 20);
-                        kills++;
-                        entities.splice(i, 1);
-                    }
-                }
-            }
-        }
-    }
-    
-    // Bot saldirisi
-    for (let bot of bots) {
-        const dist = Math.hypot(bot.x - player.x, bot.y - player.y);
-        if (dist < attackRange + bot.radius) {
-            const angleToBot = Math.atan2(bot.y - player.y, bot.x - player.x);
-            let angleDiff = Math.abs(player.angle - angleToBot);
-            if (angleDiff > Math.PI) angleDiff = Math.PI * 2 - angleDiff;
-            
-            if (angleDiff < Math.PI / 2) {
-                bot.hp -= damage;
-                bot.vx = Math.cos(angleToBot) * 12;
-                bot.vy = Math.sin(angleToBot) * 12;
-                addFloatingText(bot.x, bot.y - 30, `-${Math.round(damage)}`, '#e74c3c');
-                spawnParticles(bot.x, bot.y, '#c0392b', 10);
-                
-                if (bot.hp <= 0) {
-                    kills++;
-                    gainXp(50);
-                    bot.x = Math.random() * world.width;
-                    bot.y = Math.random() * world.height;
-                    bot.hp = 100;
-                    bot.score = 0;
-                }
-            }
-        }
-    }
-}
-
-function gainXp(amount) {
-    player.xp += amount;
-    if (player.xp >= player.maxXp) {
-        player.level++;
-        player.xp -= player.maxXp;
-        player.maxXp = Math.floor(player.maxXp * 1.4);
-        player.maxHp += 15;
-        player.hp = player.maxHp;
-        player.damage += 3;
-        addFloatingText(player.x, player.y - 60, 'LEVEL UP!', '#f1c40f');
-        spawnParticles(player.x, player.y, '#f1c40f', 40);
-    }
-}
-
-function addFloatingText(x, y, text, color) {
-    floatingTexts.push({ x, y, text, color, life: 1.5, vy: -2 });
-}
-
-function spawnParticles(x, y, color, count) {
-    for (let i = 0; i < count; i++) {
-        particles.push({
-            x, y,
-            vx: (Math.random() - 0.5) * 15,
-            vy: (Math.random() - 0.5) * 15,
-            life: 1,
-            color,
-            size: Math.random() * 6 + 3
         });
-    }
-}
 
-// ==========================================
-// OYUN DONGUSU
-// ==========================================
-function update() {
-    if (!gameStarted) return;
-    
-    // Age sayaci
-    ageTimer++;
-    if (ageTimer >= 60) {
-        ageTimer = 0;
-        age++;
-        document.getElementById('age-display').textContent = 'AGE ' + age;
-    }
-    
-    // Sol joystick
-    if (leftJoystick.active) {
-        let dx = leftJoystick.currX - leftJoystick.startX;
-        let dy = leftJoystick.currY - leftJoystick.startY;
-        let dist = Math.hypot(dx, dy);
-        
-        if (dist > 50) {
-            dx = (dx / dist) * 50;
-            dy = (dy / dist) * 50;
-        }
-        
-        leftStick.style.transform = `translate(${dx}px, ${dy}px)`;
-        
-        if (dist > 10) {
-            const speed = player.speed * Math.min(dist / 50, 1);
-            player.vx = (dx / 50) * speed;
-            player.vy = (dy / 50) * speed;
-        }
-    }
-    
-    // Sag joystick
-    if (rightJoystick.active) {
-        let dx = rightJoystick.currX - rightJoystick.startX;
-        let dy = rightJoystick.currY - rightJoystick.startY;
-        let dist = Math.hypot(dx, dy);
-        
-        if (dist > 50) {
-            dx = (dx / dist) * 50;
-            dy = (dy / dist) * 50;
-        }
-        
-        rightStick.style.transform = `translate(${dx}px, ${dy}px)`;
-        
-        if (dist > 15) {
-            player.angle = Math.atan2(dy, dx);
-            executeAttack();
-        }
-    }
-    
-    // Hareket
-    player.x += player.vx;
-    player.y += player.vy;
-    player.x = Math.max(player.radius + 20, Math.min(world.width - player.radius - 20, player.x));
-    player.y = Math.max(player.radius + 20, Math.min(world.height - player.radius - 20, player.y));
-    
-    camera.x = player.x;
-    camera.y = player.y;
-    
-    // Cooldown
-    if (player.attackCooldown > 0) player.attackCooldown--;
-    
-    // Saldiri animasyonu
-    if (player.isAttacking) {
-        player.attackProgress += 0.15;
-        if (player.attackProgress >= 1) {
-            player.isAttacking = false;
-        }
-    }
-    
-    // Entity guncelleme
-    for (let i = entities.length - 1; i >= 0; i--) {
-        const ent = entities[i];
-        
-        if (ent.vx !== undefined) {
-            ent.vx *= 0.85;
-            ent.vy *= 0.85;
-            ent.x += ent.vx;
-            ent.y += ent.vy;
-        }
-        
-        // Mob AI
-        if (ent.type === 'wolf' || ent.type === 'cow' || ent.type === 'pig') {
-            const distToPlayer = Math.hypot(player.x - ent.x, player.y - ent.y);
-            
-            if (ent.type === 'wolf' && distToPlayer < 350) {
-                ent.angle = Math.atan2(player.y - ent.y, player.x - ent.x);
-                ent.x += Math.cos(ent.angle) * 2.2;
-                ent.y += Math.sin(ent.angle) * 2.2;
-                
-                if (distToPlayer < player.radius + ent.radius) {
-                    player.hp -= 0.4;
-                    spawnParticles(player.x, player.y, '#c0392b', 2);
+        // ==================== GAME LOOP ====================
+        function gameLoop() {
+            if (!game.running) return;
+
+            // Clear
+            ctx.fillStyle = '#3e8e41';
+            ctx.fillRect(0, 0, game.width, game.height);
+
+            // Update player
+            const centerX = game.width / 2;
+            const centerY = game.height / 2;
+            const mouseAngle = Math.atan2(mouseY - centerY, mouseX - centerX);
+            game.player.update(keys, mouseAngle);
+
+            // Update camera
+            game.camera.x = game.player.x - game.width / 2;
+            game.camera.y = game.player.y - game.height / 2;
+
+            // Update mobs
+            game.mobs.forEach(mob => mob.update());
+
+            // Remove dead resources
+            game.resources = game.resources.filter(r => r.health > 0);
+
+            // Remove dead mobs and give rewards
+            game.mobs = game.mobs.filter(mob => {
+                if (mob.health <= 0) {
+                    game.player.xp += 20;
+                    game.player.score += 50;
+                    game.player.kills++;
+                    return false;
                 }
-            } else if (Math.random() < 0.01) {
-                ent.angle = Math.random() * Math.PI * 2;
-            }
-            
-            if (ent.type !== 'wolf' || distToPlayer >= 350) {
-                ent.x += Math.cos(ent.angle) * 0.4;
-                ent.y += Math.sin(ent.angle) * 0.4;
-            }
-            
-            ent.x = Math.max(30, Math.min(world.width - 30, ent.x));
-            ent.y = Math.max(30, Math.min(world.height - 30, ent.y));
-        }
-        
-        if (ent.type === 'windmill') {
-            ent.rotation = (ent.rotation || 0) + 0.02;
-            if (Math.random() < 0.002) player.wood += 1;
-        }
-        
-        // Turret AI
-        if (ent.type === 'turret' && ent.owner === 'player') {
-            let nearestEnemy = null;
-            let nearestDist = 400;
-            
-            for (let mob of entities) {
-                if (mob.type === 'wolf' || mob.type === 'cow' || mob.type === 'pig') {
-                    const d = Math.hypot(mob.x - ent.x, mob.y - ent.y);
-                    if (d < nearestDist) {
-                        nearestDist = d;
-                        nearestEnemy = mob;
-                    }
-                }
-            }
-            
-            if (nearestEnemy) {
-                ent.angle = Math.atan2(nearestEnemy.y - ent.y, nearestEnemy.x - ent.x);
-                if (!ent.fireCooldown || ent.fireCooldown <= 0) {
-                    projectiles.push({
-                        x: ent.x + Math.cos(ent.angle) * 50,
-                        y: ent.y + Math.sin(ent.angle) * 50,
-                        vx: Math.cos(ent.angle) * 12,
-                        vy: Math.sin(ent.angle) * 12,
-                        damage: 15,
-                        life: 60
-                    });
-                    ent.fireCooldown = 45;
-                }
-            }
-            if (ent.fireCooldown > 0) ent.fireCooldown--;
-        }
-    }
-    
-    // Bot AI
-    for (let bot of bots) {
-        bot.vx *= 0.85;
-        bot.vy *= 0.85;
-        bot.x += bot.vx;
-        bot.y += bot.vy;
-        
-        if (bot.attackCooldown > 0) bot.attackCooldown--;
-        if (bot.isAttacking) {
-            bot.attackProgress += 0.15;
-            if (bot.attackProgress >= 1) bot.isAttacking = false;
-        }
-        
-        const distToPlayer = Math.hypot(player.x - bot.x, player.y - bot.y);
-        
-        if (distToPlayer < 300) {
-            bot.angle = Math.atan2(player.y - bot.y, player.x - bot.x);
-            bot.x += Math.cos(bot.angle) * 2;
-            bot.y += Math.sin(bot.angle) * 2;
-            
-            if (distToPlayer < 80 && bot.attackCooldown <= 0) {
-                bot.isAttacking = true;
-                bot.attackProgress = 0;
-                bot.attackCooldown = 25;
-                player.hp -= 10;
-                spawnParticles(player.x, player.y, '#c0392b', 8);
-            }
-        } else if (Math.random() < 0.02) {
-            bot.targetAngle = Math.random() * Math.PI * 2;
-        }
-        
-        bot.angle += (bot.targetAngle - bot.angle) * 0.05;
-        bot.x += Math.cos(bot.angle) * 1;
-        bot.y += Math.sin(bot.angle) * 1;
-        
-        bot.x = Math.max(50, Math.min(world.width - 50, bot.x));
-        bot.y = Math.max(50, Math.min(world.height - 50, bot.y));
-        
-        bot.score += Math.random() < 0.1 ? 1 : 0;
-    }
-    
-    // Mermiler
-    for (let i = projectiles.length - 1; i >= 0; i--) {
-        const proj = projectiles[i];
-        proj.x += proj.vx;
-        proj.y += proj.vy;
-        proj.life--;
-        
-        if (proj.life <= 0) {
-            projectiles.splice(i, 1);
-            continue;
-        }
-        
-        for (let j = entities.length - 1; j >= 0; j--) {
-            const ent = entities[j];
-            if (ent.type === 'wolf' || ent.type === 'cow' || ent.type === 'pig') {
-                if (Math.hypot(proj.x - ent.x, proj.y - ent.y) < ent.radius + 8) {
-                    ent.hp -= proj.damage;
-                    spawnParticles(ent.x, ent.y, '#c0392b', 8);
-                    projectiles.splice(i, 1);
-                    if (ent.hp <= 0) {
-                        player.food += 2;
-                        gainXp(15);
-                        kills++;
-                        entities.splice(j, 1);
-                    }
-                    break;
-                }
-            }
-        }
-    }
-    
-    // Parcaciklar
-    for (let i = particles.length - 1; i >= 0; i--) {
-        particles[i].x += particles[i].vx;
-        particles[i].y += particles[i].vy;
-        particles[i].vx *= 0.92;
-        particles[i].vy *= 0.92;
-        particles[i].life -= 0.03;
-        if (particles[i].life <= 0) particles.splice(i, 1);
-    }
-    
-    // Kayan yazilar
-    for (let i = floatingTexts.length - 1; i >= 0; i--) {
-        floatingTexts[i].y += floatingTexts[i].vy;
-        floatingTexts[i].life -= 0.025;
-        if (floatingTexts[i].life <= 0) floatingTexts.splice(i, 1);
-    }
-    
-    // Olum kontrolu
-    if (player.hp <= 0) {
-        showDeathScreen();
-        gameStarted = false;
-    }
-    
-    // UI guncelleme
-    document.getElementById('health-bar').style.width = `${(Math.max(0, player.hp) / player.maxHp) * 100}%`;
-    document.getElementById('hp-text').innerText = `${Math.round(player.hp)} / ${player.maxHp}`;
-    document.getElementById('xp-bar').style.width = `${(player.xp / player.maxXp) * 100}%`;
-    document.getElementById('lvl-text').innerText = `Seviye ${player.level}`;
-    document.getElementById('wood-count').innerText = player.wood;
-    document.getElementById('stone-count').innerText = player.stone;
-    document.getElementById('gold-count').innerText = player.gold;
-    document.getElementById('food-count').innerText = player.food;
-    
-    // Game leaderboard
-    updateGameLeaderboard();
-}
+                return true;
+            });
 
-function updateGameLeaderboard() {
-    const allPlayers = [{ name: playerName, score: player.xp + player.level * 100, me: true }, ...bots.map(b => ({ name: b.name, score: b.score, me: false }))];
-    allPlayers.sort((a, b) => b.score - a.score);
-    
-    const lbList = document.getElementById('game-lb-list');
-    lbList.innerHTML = allPlayers.slice(0, 6).map((p, i) => `
-        <div class="game-lb-entry ${p.me ? 'me' : ''}">
-            <span>${i + 1}. ${p.name.substring(0, 10)}</span>
-            <span>${p.score}</span>
-        </div>
-    `).join('');
-}
+            // Update particles
+            game.particles = game.particles.filter(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life--;
+                return p.life > 0;
+            });
 
-// ==========================================
-// CIZIM
-// ==========================================
-function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    ctx.save();
-    ctx.translate(canvas.width/2 - camera.x, canvas.height/2 - camera.y);
-    
-    drawGround();
-    
-    const allObjects = [...entities, { type: 'player', y: player.y }, ...bots.map(b => ({ ...b, type: 'bot' }))];
-    allObjects.sort((a, b) => a.y - b.y);
-    
-    for (const obj of allObjects) {
-        if (obj.type === 'player') {
-            drawPlayer(player);
-        } else if (obj.type === 'bot') {
-            drawPlayer(obj, true);
-        } else if (obj.type === 'tree') {
-            drawTree(obj.x, obj.y, obj.scale);
-            if (obj.hp < obj.maxHp) drawHealthBar(obj.x, obj.y + 55 * obj.scale, 50, obj.hp, obj.maxHp);
-        } else if (obj.type === 'rock') {
-            drawRock(obj.x, obj.y, obj.scale);
-            if (obj.hp < obj.maxHp) drawHealthBar(obj.x, obj.y + 45 * obj.scale, 50, obj.hp, obj.maxHp);
-        } else if (obj.type === 'gold') {
-            drawGold(obj.x, obj.y, obj.scale);
-            if (obj.hp < obj.maxHp) drawHealthBar(obj.x, obj.y + 45 * obj.scale, 50, obj.hp, obj.maxHp);
-        } else if (obj.type === 'wolf') {
-            drawWolf(obj.x, obj.y, obj.radius, obj.angle);
-            drawHealthBar(obj.x, obj.y - obj.radius - 10, 45, obj.hp, obj.maxHp);
-        } else if (obj.type === 'cow') {
-            drawCow(obj.x, obj.y, obj.radius, obj.angle);
-            drawHealthBar(obj.x, obj.y - obj.radius - 12, 45, obj.hp, obj.maxHp);
-        } else if (obj.type === 'pig') {
-            drawPig(obj.x, obj.y, obj.radius, obj.angle);
-            drawHealthBar(obj.x, obj.y - obj.radius - 10, 45, obj.hp, obj.maxHp);
-        } else if (obj.type === 'wall') {
-            drawWall(obj.x, obj.y);
-            if (obj.hp < obj.maxHp) drawHealthBar(obj.x, obj.y + 45, 55, obj.hp, obj.maxHp);
-        } else if (obj.type === 'spike') {
-            drawSpike(obj.x, obj.y, 30);
-            if (obj.hp < obj.maxHp) drawHealthBar(obj.x, obj.y + 50, 55, obj.hp, obj.maxHp);
-        } else if (obj.type === 'windmill') {
-            drawWindmill(obj.x, obj.y, obj.rotation || 0);
-            if (obj.hp < obj.maxHp) drawHealthBar(obj.x, obj.y + 50, 55, obj.hp, obj.maxHp);
-        } else if (obj.type === 'turret') {
-            drawTurret(obj.x, obj.y, obj.angle || 0);
-            if (obj.hp < obj.maxHp) drawHealthBar(obj.x, obj.y + 45, 55, obj.hp, obj.maxHp);
+            // Draw grid
+            drawGrid();
+
+            // Draw resources
+            game.resources.forEach(r => r.draw());
+
+            // Draw mobs
+            game.mobs.forEach(m => m.draw());
+
+            // Draw particles
+            game.particles.forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = p.life / 30;
+                ctx.fillRect(p.x - game.camera.x - 3, p.y - game.camera.y - 3, 6, 6);
+            });
+            ctx.globalAlpha = 1;
+
+            // Draw player
+            game.player.draw();
+
+            // Update UI
+            updateUI();
+            updateMinimap();
+
+            // Check death
+            if (game.player.health <= 0) {
+                game.running = false;
+                document.getElementById('deathScore').textContent = game.player.score;
+                document.getElementById('deathKills').textContent = game.player.kills;
+                document.getElementById('deathAge').textContent = game.player.age;
+                document.getElementById('deathScreen').classList.add('active');
+            }
+
+            requestAnimationFrame(gameLoop);
         }
-    }
-    
-    // Mermiler
-    for (const proj of projectiles) {
-        ctx.fillStyle = '#505060';
-        ctx.beginPath();
-        ctx.arc(proj.x, proj.y, 6, 0, Math.PI * 2);
-        ctx.fill();
-    }
-    
-    // Parcaciklar
-    for (const p of particles) {
-        ctx.fillStyle = p.color;
-        ctx.globalAlpha = p.life;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.globalAlpha = 1;
-    }
-    
-    // Kayan yazilar
-    for (const t of floatingTexts) {
-        ctx.fillStyle = t.color;
-        ctx.globalAlpha = Math.min(1, t.life);
-        ctx.font = "bold 16px Nunito";
-        ctx.textAlign = 'center';
-        ctx.strokeStyle = 'rgba(0,0,0,0.6)';
-        ctx.lineWidth = 4;
-        ctx.strokeText(t.text, t.x, t.y);
-        ctx.fillText(t.text, t.x, t.y);
-        ctx.globalAlpha = 1;
-    }
-    
-    ctx.restore();
-    
-    // Minimap
-    const mm = document.getElementById('minimap');
-    mm.width = 150;
-    mm.height = 150;
-    mctx.fillStyle = 'rgba(100, 140, 90, 0.95)';
-    mctx.fillRect(0, 0, 150, 150);
-    
-    const scale = 150 / world.width;
-    for (const ent of entities) {
-        if (ent.type === 'tree') mctx.fillStyle = '#7ab85a';
-        else if (ent.type === 'rock') mctx.fillStyle = '#6a6a7e';
-        else if (ent.type === 'gold') mctx.fillStyle = '#e8b830';
-        else if (ent.type === 'wolf') mctx.fillStyle = '#888888';
-        else if (ent.type === 'cow') mctx.fillStyle = '#f0f0f0';
-        else if (ent.type === 'pig') mctx.fillStyle = '#FFB8B8';
-        else continue;
-        mctx.fillRect(ent.x * scale - 1.5, ent.y * scale - 1.5, 3, 3);
-    }
-    
-    // Bots on minimap
-    mctx.fillStyle = '#e85a5a';
-    for (const bot of bots) {
-        mctx.fillRect(bot.x * scale - 2, bot.y * scale - 2, 4, 4);
-    }
-    
-    // Player on minimap
-    mctx.fillStyle = '#4CAF50';
-    mctx.beginPath();
-    mctx.arc(player.x * scale, player.y * scale, 5, 0, Math.PI * 2);
-    mctx.fill();
-    mctx.strokeStyle = '#fff';
-    mctx.lineWidth = 2;
-    mctx.stroke();
-}
 
-// Envanter ikonlari
-function drawInventoryIcons() {
-    const swordCanvas = document.getElementById('inv-sword');
-    const sCtx = swordCanvas.getContext('2d');
-    swordCanvas.width = 32; swordCanvas.height = 32;
-    sCtx.translate(4, 16);
-    sCtx.scale(0.4, 0.4);
-    sCtx.fillStyle = '#8B5A2B';
-    sCtx.fillRect(0, -5, 15, 10);
-    sCtx.fillStyle = '#DAA520';
-    sCtx.fillRect(12, -8, 6, 16);
-    sCtx.fillStyle = '#a8a8a8';
-    sCtx.beginPath();
-    sCtx.moveTo(16, -4);
-    sCtx.lineTo(50, -2);
-    sCtx.lineTo(55, 0);
-    sCtx.lineTo(50, 2);
-    sCtx.lineTo(16, 4);
-    sCtx.closePath();
-    sCtx.fill();
-    
-    const pickCanvas = document.getElementById('inv-pickaxe');
-    const pCtx = pickCanvas.getContext('2d');
-    pickCanvas.width = 32; pickCanvas.height = 32;
-    pCtx.translate(4, 16);
-    pCtx.scale(0.38, 0.38);
-    pCtx.fillStyle = '#8B5A2B';
-    pCtx.fillRect(0, -4, 45, 8);
-    pCtx.fillStyle = '#808080';
-    pCtx.beginPath();
-    pCtx.moveTo(30, -4);
-    pCtx.lineTo(50, -15);
-    pCtx.lineTo(52, -12);
-    pCtx.lineTo(38, -2);
-    pCtx.closePath();
-    pCtx.fill();
-    pCtx.beginPath();
-    pCtx.moveTo(30, 4);
-    pCtx.lineTo(50, 15);
-    pCtx.lineTo(52, 12);
-    pCtx.lineTo(38, 2);
-    pCtx.closePath();
-    pCtx.fill();
-    
-    const hammerCanvas = document.getElementById('inv-hammer');
-    const hCtx = hammerCanvas.getContext('2d');
-    hammerCanvas.width = 32; hammerCanvas.height = 32;
-    hCtx.translate(4, 16);
-    hCtx.scale(0.38, 0.38);
-    hCtx.fillStyle = '#8B5A2B';
-    hCtx.fillRect(0, -4, 40, 8);
-    hCtx.fillStyle = '#606060';
-    hCtx.fillRect(32, -14, 20, 28);
-    
-    const foodCanvas = document.getElementById('inv-food');
-    const fCtx = foodCanvas.getContext('2d');
-    foodCanvas.width = 32; foodCanvas.height = 32;
-    fCtx.beginPath();
-    fCtx.arc(16, 16, 10, 0, Math.PI * 2);
-    fCtx.fillStyle = '#e74c3c';
-    fCtx.fill();
-    fCtx.strokeStyle = '#a83228';
-    fCtx.lineWidth = 3;
-    fCtx.stroke();
-    
-    // Build icons
-    const wallCanvas = document.getElementById('build-wall');
-    const wCtx = wallCanvas.getContext('2d');
-    wallCanvas.width = 28; wallCanvas.height = 28;
-    wCtx.translate(14, 14);
-    wCtx.scale(0.28, 0.28);
-    wCtx.beginPath();
-    wCtx.arc(-12, 8, 18, 0, Math.PI * 2);
-    wCtx.fillStyle = '#c4a060';
-    wCtx.fill();
-    wCtx.strokeStyle = '#8a7040';
-    wCtx.lineWidth = 4;
-    wCtx.stroke();
-    wCtx.beginPath();
-    wCtx.arc(12, 8, 18, 0, Math.PI * 2);
-    wCtx.fill();
-    wCtx.stroke();
-    wCtx.beginPath();
-    wCtx.arc(0, -10, 20, 0, Math.PI * 2);
-    wCtx.fill();
-    wCtx.stroke();
-    
-    const spikeCanvas = document.getElementById('build-spike');
-    const spCtx = spikeCanvas.getContext('2d');
-    spikeCanvas.width = 28; spikeCanvas.height = 28;
-    spCtx.translate(14, 14);
-    spCtx.beginPath();
-    spCtx.arc(0, 0, 5, 0, Math.PI * 2);
-    spCtx.fillStyle = '#8a7050';
-    spCtx.fill();
-    for (let i = 0; i < 6; i++) {
-        const a = (i / 6) * Math.PI * 2 - Math.PI / 2;
-        spCtx.save();
-        spCtx.rotate(a);
-        spCtx.beginPath();
-        spCtx.moveTo(4, -2);
-        spCtx.lineTo(11, 0);
-        spCtx.lineTo(4, 2);
-        spCtx.closePath();
-        spCtx.fillStyle = '#9a8060';
-        spCtx.fill();
-        spCtx.restore();
-    }
-    
-    const windmillCanvas = document.getElementById('build-windmill');
-    const wmCtx = windmillCanvas.getContext('2d');
-    windmillCanvas.width = 28; windmillCanvas.height = 28;
-    wmCtx.translate(14, 14);
-    wmCtx.beginPath();
-    wmCtx.arc(0, 0, 6, 0, Math.PI * 2);
-    wmCtx.fillStyle = '#c4a060';
-    wmCtx.fill();
-    for (let i = 0; i < 4; i++) {
-        wmCtx.save();
-        wmCtx.rotate((i / 4) * Math.PI * 2);
-        wmCtx.fillStyle = '#e8e0d0';
-        wmCtx.beginPath();
-        wmCtx.moveTo(4, -2);
-        wmCtx.lineTo(12, -4);
-        wmCtx.lineTo(12, 4);
-        wmCtx.lineTo(4, 2);
-        wmCtx.closePath();
-        wmCtx.fill();
-        wmCtx.restore();
-    }
-    
-    const turretCanvas = document.getElementById('build-turret');
-    const tCtx = turretCanvas.getContext('2d');
-    turretCanvas.width = 28; turretCanvas.height = 28;
-    tCtx.translate(14, 14);
-    tCtx.beginPath();
-    tCtx.arc(0, 0, 8, 0, Math.PI * 2);
-    tCtx.fillStyle = '#707080';
-    tCtx.fill();
-    tCtx.fillStyle = '#505058';
-    tCtx.fillRect(5, -3, 10, 6);
-}
+        // ==================== START GAME ====================
+        function startGame(nickname) {
+            document.getElementById('menuScreen').classList.add('hidden');
+            document.getElementById('gameUI').classList.add('active');
+            
+            resize();
+            game.player = new Player(nickname || 'Player');
+            game.resources = [];
+            game.mobs = [];
+            game.particles = [];
+            initWorld();
+            game.running = true;
+            gameLoop();
+        }
 
-// Oyun dongusu
-function gameLoop() {
-    update();
-    draw();
-    requestAnimationFrame(gameLoop);
-}
-</script>
+        // Menu interactions
+        document.getElementById('playBtn').addEventListener('click', () => {
+            const nick = document.getElementById('nickInput').value.trim();
+            startGame(nick || 'Player');
+        });
+
+        document.getElementById('nickInput').addEventListener('keypress', e => {
+            if (e.key === 'Enter') {
+                const nick = document.getElementById('nickInput').value.trim();
+                startGame(nick || 'Player');
+            }
+        });
+
+        document.getElementById('respawnBtn').addEventListener('click', () => {
+            document.getElementById('deathScreen').classList.remove('active');
+            startGame(game.player?.name || 'Player');
+        });
+
+        // Floating leaves in menu
+        (function() {
+            const bg = document.getElementById('menuBg');
+            for (let i = 0; i < 15; i++) {
+                const leaf = document.createElement('div');
+                leaf.className = 'floating-leaf';
+                leaf.style.left = Math.random() * 100 + '%';
+                leaf.style.animationDuration = (8 + Math.random() * 8) + 's';
+                leaf.style.animationDelay = Math.random() * 10 + 's';
+                bg.appendChild(leaf);
+            }
+        })();
+
+        // Online counter
+        (function() {
+            const el = document.getElementById('onlineCount');
+            let count = 8432;
+            setInterval(() => {
+                count += Math.floor(Math.random() * 30) - 15;
+                count = Math.max(5000, Math.min(15000, count));
+                el.textContent = count.toLocaleString();
+            }, 4000);
+        })();
+
+        // Init
+        window.addEventListener('resize', resize);
+        resize();
+    </script>
 </body>
 </html>

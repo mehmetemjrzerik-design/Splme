@@ -11,6 +11,9 @@ __v0_jsx-dev-runtime.ts
 
 # Common ignores
 node_modules
+.pnpm-store/
+dist/
 .next/
 .DS_Store
 .vercel
+.env
