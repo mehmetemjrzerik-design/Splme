@@ -1,10 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* Turbopack veya React Compiler ayarları varsa burada false yapın */
-  experimental: {
-    // reactCompiler: false, // Eğer hata devam ederse bunu ekleyin
-  }
+  /* React Compiler artık experimental dışına taşındı */
+  reactCompiler: true,
+  
+  /* Eğer v0'dan gelen başka özel ayarların varsa buraya ekleyebilirsin */
+  /* Örneğin görseller için uzak domain izinleri vb. */
 };
 
 export default nextConfig;
